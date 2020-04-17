@@ -15,14 +15,25 @@ import http.client
 import pprint
 import json
 import os
+import pytest
 
 from GoogleSpreadSheetGetter import GoogleSpreadSheetGetter
 
 class TestCaseGoogleSpreadSheetGetter(unittest.TestCase):
 
     def test_reading_data(self):
-        g1 = GoogleSpreadSheetGetter("spread_sheet_specifics_for_test_report45.json")
-        temp_data = g1.get_values_from_spreadsheet()
+        g7 = GoogleSpreadSheetGetter("spread_sheet_specifics_for_test_report45.json")
+        temp_data = g7.get_values_from_spreadsheet()
         self.assertTrue(len(temp_data) > 0)
 
-        g1.show_data()
+        g7.show_data()
+
+class TestCaseGoogleSpreadSheetGetter_with_bad_input(unittest.TestCase):
+    def test_not_having_all_files(self):
+
+        with self.assertRaises(OSError) as cm:
+            g1 = GoogleSpreadSheetGetter("this_file_does_not_exist.json")
+
+        self.assertEqual(cm.exception.errno, 1)
+
+
