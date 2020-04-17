@@ -47,13 +47,9 @@ class simpleGoogleSpreadSheetGetter:
 
 
     def get_values_from_spreadsheet(self):
-
         wks = self.__authorised_access_to_google_spreadsheet.open(self.__name_of_google_spreadsheet)
-
         values_from_spreadsheet = wks.sheet1.get_all_records()
         print(values_from_spreadsheet)
-
-
         return values_from_spreadsheet
 
     def show_data(self):
@@ -65,3 +61,7 @@ class simpleGoogleSpreadSheetGetter:
             print('data I read:')
             for row in values_from_spreadsheet:
                 print(row)
+
+    def change_something(self):
+        wks = self.__authorised_access_to_google_spreadsheet.open(self.__name_of_google_spreadsheet)
+        wks.sheet1.update_acell('A1','my new text')

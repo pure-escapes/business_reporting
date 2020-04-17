@@ -66,6 +66,11 @@ google-auth-oauthlib = "*"
 gspread = "*"
 oauth2client = "*"
 pyopenssl = "*"
+jira = "*"
+requests = "*"
+filemagic = "*"
+requests-oauthlib = "*"
+requests-kerberos = "*"
 
 [requires]
 python_version = "3.6"
