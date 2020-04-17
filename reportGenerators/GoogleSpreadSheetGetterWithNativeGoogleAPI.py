@@ -22,28 +22,27 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 
-class GoogleSpreadSheetGetter:
+class NativeGoogleSpreadSheetGetter:
     __SCOPES = None
     __SAMPLE_SPREADSHEET_ID = None
     __SAMPLE_RANGE_NAME = None
     __google_credentials = None
-    __expected_files = ['credentials.json']
+    __expected_files = []
+    __path_to_google_credentials = None
 
-    def __check_all_important_files_exist(self):
-        for filename in self.__expected_files:
-            if not os.path.exists(filename):
-                raise OSError(1, 'could not find file %s' % filename)
+    def __init__(self, path_to_reports_configuration):
 
-    def __init__(self, input_file):
-        self.__expected_files.append(input_file)
-        self.__check_all_important_files_exist()
-
-        with open(input_file, "r") as spread_sheet_config:
+        with open(path_to_reports_configuration, "r") as spread_sheet_config:
             data = json.load(spread_sheet_config)
             self.__SCOPES = data["SCOPES"]
             self.__SAMPLE_SPREADSHEET_ID = data["SAMPLE_SPREADSHEET_ID"]
             self.__SAMPLE_RANGE_NAME = data["SAMPLE_RANGE_NAME"]
 
+
+            if not os.path.exists(data["path_to_google_credentials"]):
+                raise OSError(1, 'could not find file %s' % self.__path_to_google_credentials)
+            else:
+                self.__path_to_google_credentials = data["path_to_google_credentials"]
 
         # The file token.pickle stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
@@ -57,7 +56,7 @@ class GoogleSpreadSheetGetter:
                 self.__google_credentials.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', self.__SCOPES)
+                    self.__path_to_google_credentials, self.__SCOPES)
                 self.__google_credentials = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:

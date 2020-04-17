@@ -9,14 +9,21 @@ generate analytics for reporting purposes
 1. google API needs to be enabled ( from https://developers.google.com/sheets/api/quickstart/python/?authuser=4 )
     1. if this had happened before, check permissions of tokens at https://console.developers.google.com/apis/credentials
 1. the file `credentials.json` must exist in the directory where the script will run
-1. the target spreadsheet exists on googledrive
+1. the target spreadsheet exists on google drive
+1. for service accounts, the target spreadsheet needs to be shared with that account, too
 
-# installation
+# installation of scripts
 
 After creating a pipenv 
 
 ```bash
 pipenv install
+```
+
+# test
+after activating  the virtual environment and having created any files required
+```bash
+pipenv run pytest
 ```
 
 # execution steps for an example (test_report45)

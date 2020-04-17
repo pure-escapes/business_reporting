@@ -63,6 +63,9 @@ Send2Trash = "==1.5.0"
 google-api-python-client = "*"
 google-auth-httplib2 = "*"
 google-auth-oauthlib = "*"
+gspread = "*"
+oauth2client = "*"
+pyopenssl = "*"
 
 [requires]
 python_version = "3.6"

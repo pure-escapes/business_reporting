@@ -1,0 +1,6 @@
+{
+  "SCOPES":"https://www.googleapis.com/auth/spreadsheets",
+  "SAMPLE_SPREADSHEET_ID": "1vGlD0pkqYUpXsNqjSRs_EUHEkvCsjRmomlaFIvO9zQQ",
+  "SAMPLE_RANGE_NAME": "Sheet1!A1:D5",
+  "path_to_google_credentials": "/home/christos/PycharmProjects/business_reporting/resources_NOT_TO_BE_SHARED/credentials.json"
+}
