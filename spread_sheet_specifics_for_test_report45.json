@@ -1,0 +1,5 @@
+{
+  "SCOPES":"https://www.googleapis.com/auth/spreadsheets",
+  "SAMPLE_SPREADSHEET_ID": "1vGlD0pkqYUpXsNqjSRs_EUHEkvCsjRmomlaFIvO9zQQ",
+  "SAMPLE_RANGE_NAME": "Sheet1!A1:D5"
+}
