@@ -18,6 +18,11 @@ from reportGenerators.GoogleSpreadSheetGetterWithNativeGoogleAPI import NativeGo
 class TestCaseGoogleSpreadSheetGetter(unittest.TestCase):
 
     def test_reading_data(self):
+        '''
+        WARNINIG: sometimes the authorisation period expires and needs renewal from the user from the browser
+
+        '''
+
         current_directory, this_file = os.path.split(__file__)
         one_directory_above, name_of_current_directory = os.path.split(current_directory)
         path_to_filename = os.path.join(one_directory_above,"resources", "spread_sheet_specifics_for_test_report45.json")

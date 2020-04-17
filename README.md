@@ -8,6 +8,7 @@ generate analytics for reporting purposes
 1. use the correct google account
 1. google API needs to be enabled ( from https://developers.google.com/sheets/api/quickstart/python/?authuser=4 )
     1. if this had happened before, check permissions of tokens at https://console.developers.google.com/apis/credentials
+    1. also google drive API (not just the spreadsheets)
 1. the file `credentials.json` must exist in the directory where the script will run
 1. the target spreadsheet exists on google drive
 1. for service accounts, the target spreadsheet needs to be shared with that account, too

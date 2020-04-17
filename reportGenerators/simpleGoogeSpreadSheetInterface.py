@@ -11,9 +11,10 @@ Written by Christos Tsotskas <info@pure-escapes.com>, April 2020
 """
 
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import json
+import os
 
+from oauth2client.service_account import ServiceAccountCredentials
 
 class simpleGoogleSpreadSheetGetter:
     __SCOPES = None
@@ -21,7 +22,8 @@ class simpleGoogleSpreadSheetGetter:
     __SAMPLE_RANGE_NAME = None
     __google_credentials = None
     __expected_files = []
-    __authorised_google_sheet = None
+    __authorised_access_to_google_spreadsheet = None
+    __name_of_google_spreadsheet = None
 
     def __init__(self, path_to_reports_configuration):
 
@@ -31,31 +33,26 @@ class simpleGoogleSpreadSheetGetter:
             self.__SAMPLE_SPREADSHEET_ID = data["SAMPLE_SPREADSHEET_ID"]
             self.__SAMPLE_RANGE_NAME = data["SAMPLE_RANGE_NAME"]
 
-            path_to_googlecredentials = data["path_to_google_credentials"]
-            if not os.path.exists(path_to_googlecredentials):
-                raise OSError(1, 'could not find file %s' % path_to_googlecredentials)
+            self.__path_to_google_credentials = data["path_to_google_credentials"]
+            if not os.path.exists(self.__path_to_google_credentials):
+                raise OSError(1, 'could not find file %s' % self.__path_to_google_credentials)
+            else:
+
+                self.__name_of_google_spreadsheet = data["name_of_spreadsheet_on_google_drive"]
 
 
 
-
-
-
-        self.__google_credentials = ServiceAccountCredentials.from_json_keyfile_name('quickstart-1587116956725-0e4af7534e06.json')
-        self.__authorised_google_sheet = None
+        self.__google_credentials = ServiceAccountCredentials.from_json_keyfile_name(self.__path_to_google_credentials, self.__SCOPES)
+        self.__authorised_access_to_google_spreadsheet = gspread.authorize(self.__google_credentials)
 
 
     def get_values_from_spreadsheet(self):
 
-        wks = gc.open("test_report45").sheet1
-        gc = gspread.authorize(self.__google_credentials)
+        wks = self.__authorised_access_to_google_spreadsheet.open(self.__name_of_google_spreadsheet)
 
-        service = build('sheets', 'v4', credentials=self.__google_credentials)
+        values_from_spreadsheet = wks.sheet1.get_all_records()
+        print(values_from_spreadsheet)
 
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=self.__SAMPLE_SPREADSHEET_ID,
-                                    range=self.__SAMPLE_RANGE_NAME).execute()
-        values_from_spreadsheet = result.get('values', [])
 
         return values_from_spreadsheet
 

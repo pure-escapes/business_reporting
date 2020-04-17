@@ -2,6 +2,6 @@
   "SCOPES":["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"],
   "SAMPLE_SPREADSHEET_ID": "1vGlD0pkqYUpXsNqjSRs_EUHEkvCsjRmomlaFIvO9zQQ",
   "SAMPLE_RANGE_NAME": "Sheet1!A1:D5",
-  "path_to_google_credentials": "/home/christos/PycharmProjects/business_reporting/resources_NOT_TO_BE_SHARED/businessreporting-28e5f049effc.json",
+  "path_to_google_credentials": "/not_good_path_to_credentials/blah-28e5f049effc.json",
   "name_of_spreadsheet_on_google_drive": "test_report45"
 }

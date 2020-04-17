@@ -11,14 +11,19 @@ Written by Christos Tsotskas <info@pure-escapes.com>, April 2020
 """
 
 import unittest
+import os
 
 from reportGenerators.simpleGoogeSpreadSheetInterface import simpleGoogleSpreadSheetGetter
 
 class TestCaseGoogleSpreadSheetGetter(unittest.TestCase):
 
     def test_reading_data(self):
-        finame_of_configuration = "simple_reports_configuration.json"
-        g17 = simpleGoogleSpreadSheetGetter(finame_of_configuration)
+        current_directory, this_file = os.path.split(__file__)
+        one_directory_above, name_of_current_directory = os.path.split(current_directory)
+        path_to_filename = os.path.join(one_directory_above,"resources", "simple_reports_configuration.json")
+
+
+        g17 = simpleGoogleSpreadSheetGetter(path_to_filename)
         temp_data = g17.get_values_from_spreadsheet()
         self.assertTrue(len(temp_data) > 0)
 
@@ -26,11 +31,24 @@ class TestCaseGoogleSpreadSheetGetter(unittest.TestCase):
 
 class TestCaseGoogleSpreadSheetGetter_with_bad_input(unittest.TestCase):
     def test_not_having_all_files(self):
-
+        current_directory, this_file = os.path.split(__file__)
+        one_directory_above, name_of_current_directory = os.path.split(current_directory)
+        path_to_filename = os.path.join(one_directory_above,"resources", "bad_simple_reports_configuration.json")
 
         with self.assertRaises(OSError) as cm:
-            g1 = simpleGoogleSpreadSheetGetter("this_file_does_not_exist.json")
+            g1 = simpleGoogleSpreadSheetGetter(path_to_filename)
 
         self.assertEqual(cm.exception.errno, 1)
+
+    def test_not_having_configuration_file_for_reports(self):
+
+        current_directory, this_file = os.path.split(__file__)
+        one_directory_above, name_of_current_directory = os.path.split(current_directory)
+        path_to_filename = os.path.join(one_directory_above,"resources", "this_file_does_not_exist.json")
+
+        with self.assertRaises(FileNotFoundError) as cm:
+            g1 = simpleGoogleSpreadSheetGetter(path_to_filename)
+
+        self.assertEqual(cm.exception.errno, 2)
 
 
