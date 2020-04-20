@@ -71,6 +71,7 @@ requests = "*"
 filemagic = "*"
 requests-oauthlib = "*"
 requests-kerberos = "*"
+pycurl = "*"
 
 [requires]
 python_version = "3.6"

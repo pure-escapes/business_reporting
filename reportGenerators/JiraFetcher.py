@@ -15,6 +15,28 @@ import requests
 
 import os
 
+
+class JIRA_Fetcher:
+    __jira_handler = None
+
+    def __init__(self):
+        options = {"server": "https://pureescapes.atlassian.net"}
+        # print(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_PASSWORD"))
+        # jira = JIRA(options)
+        self.__jira_handler = JIRA(options=options, basic_auth=(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER")))
+
+
+    def get_number_of_bugs_in_backlog_for(self, project_name, version):
+        bugs_found = 0
+        template_of_JQL_command = "issuetype in (Bug, Epic, Story) AND project = {} AND fixVersion = {} AND creator in (currentUser()) AND status = Backlog"
+        JQL_command = template_of_JQL_command.format(project_name, version)
+
+        results = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+        bugs_found = len(results)
+        print(results)
+        print(bugs_found)
+        return bugs_found
+
 def try_with_standard_HTML():
     url = "https://pureescapes.atlassian.net"
     body = {
