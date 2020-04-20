@@ -11,6 +11,9 @@ Written by Christos Tsotskas <info@pure-escapes.com>, April 2020
 """
 
 class UpdaterOfGoogleSpreadSheetsFromJira:
+    __output = {}
+
+
     def __init__(self):
         pass
 

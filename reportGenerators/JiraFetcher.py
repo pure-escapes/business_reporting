@@ -28,14 +28,35 @@ class JIRA_Fetcher:
 
     def get_number_of_bugs_in_backlog_for(self, project_name, version):
         bugs_found = 0
-        template_of_JQL_command = "issuetype in (Bug, Epic, Story) AND project = {} AND fixVersion = {} AND creator in (currentUser()) AND status = Backlog"
+
+        template_of_JQL_command = "issuetype in (Bug) AND project = {} AND fixVersion = {} AND status = Backlog"
+
         JQL_command = template_of_JQL_command.format(project_name, version)
 
         results = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
         bugs_found = len(results)
-        print(results)
-        print(bugs_found)
         return bugs_found
+
+    def get_size_of_backlog_for (self, project_name, version):
+        tickets_found = 0
+
+        template_of_JQL_command = "issuetype in (Bug, Story) AND project = {} AND fixVersion = {} AND status = Backlog"
+        JQL_command = template_of_JQL_command.format(project_name, version)
+
+        results = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+
+        tickets_found = len(results)
+        return tickets_found
+
+    def get_tickets_completed_within_period(self, project_name, start_date, end_date, version):
+        tickets_found = 0
+
+        template_of_JQL_command = 'project = "{}" AND issuetype in (Bug,Story) AND status changed TO Done AND updatedDate > "{} 00:00" AND updatedDate < "{} 00:00" AND fixVersion = {}'
+        JQL_command = template_of_JQL_command.format(project_name, start_date, end_date, version)
+        JQQ = 'project = "OWA" AND issuetype in (Bug,Story) AND status changed TO Done AND updatedDate > "2020/04/01 00:00" AND updatedDate < "2020/04/20 00:00" AND fixVersion = 1.0.0'
+        results = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+        tickets_found = len(results)
+        return tickets_found
 
 def try_with_standard_HTML():
     url = "https://pureescapes.atlassian.net"
