@@ -1,0 +1,37 @@
+{
+  "name": "",
+  "period_of_iteration": {
+    "startDate":"2020/04/01",
+    "endDate": "2020/04/20"
+  },
+  "input": {
+    "at_the_start_of_the_period": {
+      "backlog_size": 100,
+      "tickets_committed": 10,
+      "capacity_ratio_for_bugs": 0
+    } ,
+    "at_the_end_of_the_period": {
+      "tickets_completed": 1,
+      "tickets_added_to_backlog_during_the_period": 0,
+      "bugs_added_to_backlog_during_the_period": 0,
+      "tickets_removed_from_backlog_during_the_period": 0
+    }
+
+  },
+  "calculated": {
+    "team_velocity": 0,
+    "estimated_days_to_complete": 0,
+    "weighted_iterations_to_complete": 0,
+    "relative_difference_between_estimation_and_weighted_iterations": 0
+
+  },
+  "date_of_request": "",
+  "comments" : "",
+  "JIRA_settings": {
+    "project_name": "OWA",
+    "version": "1.0.0"
+  },
+  "google_settings": {
+    "path_to_configuration_file_to_google_spreadsheet": ""
+  }
+}
