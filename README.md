@@ -57,3 +57,10 @@ create environment variables
 curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 ```
 
+
+# Future Work
+
+1. use data from CircleCI https://circleci.com/blog/announcing-circleci-s-100m-series-e/ (count Deployments per day)
+1. create reports on jupyter notebook and automatically share
+1. use analytics from sonarcloud
+1. use analytics from github
