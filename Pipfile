@@ -71,7 +71,7 @@ requests = "*"
 filemagic = "*"
 requests-oauthlib = "*"
 requests-kerberos = "*"
-pycurl = "*"
+tinydb = "*"
 
 [requires]
 python_version = "3.6"

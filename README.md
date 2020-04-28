@@ -57,6 +57,10 @@ create environment variables
 curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 ```
 
+# Usage
+
+
+
 
 # Future Work
 
@@ -64,3 +68,9 @@ curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 1. create reports on jupyter notebook and automatically share
 1. use analytics from sonarcloud
 1. use analytics from github
+1. from analytics, get all tickets currently on kanban that need updating for version numbers. story points (if not a bug) and time estimations 
+1. check if tickets from backlog are ready to go to the kanbanboard!
+1. check priorities of certain tickets
+1. set priorities to specific tickets
+1. check weekly how many hours of work have been logged, and against which tickets
+1. calculate averages over a specific period (and include versions)
