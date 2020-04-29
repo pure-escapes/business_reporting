@@ -74,3 +74,4 @@ curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 1. set priorities to specific tickets
 1. check weekly how many hours of work have been logged, and against which tickets
 1. calculate averages over a specific period (and include versions)
+1. find unassigned tickets, too!
