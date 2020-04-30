@@ -45,13 +45,14 @@ class Test_JIRAFetcher(unittest.TestCase):
 
         self.assertEqual(backlog_size, 10)
 
-    def test_get_incomplete_tickets_on_main_board(self):
+    def test_get_incomplete_tickets_on_main_board_for_a_specific_version(self):
         columns_of_main_board = [] #except backlog,done,closed
         project_name = 'OWA'
         version = "1.1.0"
 
-        t = self.__j1.get_stories_and_bugs_tickets_that_are_in_progress_for_a_specific_version(project_name=project_name, version=version)
-        formatted_output = json.dumps(t, indent=2)
-        print(formatted_output)
-        #all lowercase, replace
+        report_object = self.__j1.get_stories_and_bugs_tickets_that_are_in_progress_for_a_specific_version(project_name=project_name, version=version)
+        formatted_output = json.dumps(report_object, indent=2)
+        # print(formatted_output)
+
+        self.__j1.print_short_message_for_update(report_object)
 
