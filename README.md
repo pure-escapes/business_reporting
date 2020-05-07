@@ -57,6 +57,59 @@ create environment variables
 curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 ```
 
+# CircleCI:
+
+## preparation
+1. get a token from the site, from personal tokens, add to your env variables (e.g., as `PE_CIRCLECI_API_TOKEN`)
+1. check that it works
+```bash
+curl https://circleci.com/api/v2/me --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+### utilities
+
+an example of `slug`
+```html
+gh/pure-escapes/webapp-backend
+```
+
+
+project info
+```bash
+curl https://circleci.com/api/v2/project/gh/pure-escapes/webapp-backend --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+example of workflow metrics
+```html
+curl -X GET https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-backend/workflows  --header 'Content-Type: application/json' --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+getting jobs of a particular workflow
+```html
+curl -X GET https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-backend/workflows/build-and-deploy/jobs  --header 'Content-Type: application/json' --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+getting job statistics from job `deploy_develop`
+```html
+curl -X GET https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-backend/workflows/build-and-deploy/jobs/deploy_develop --header 'Content-Type: application/json' -header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+getting all jobs from a specific workflow `build_and_deploy`
+```html
+curl -X GET https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-frontend/workflows/build_and_deploy --header 'Content-Type: application/json' --header "Circle-Toen: $PE_CIRCLECI_API_TOKEN"
+```
+
+getting job details for a specific job number
+```html
+curl -X GET https://circleci.com/api/v2/project/gh/pure-escapes/webapp-frontend/job/706 --header 'Content-Type: application/json' --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+## references
+
+https://circleci.com/docs/api/v2/#circleci-api 
+https://circleci.com/docs/2.0/api-developers-guide/#section=reference
+
+
 # Usage
 
 
@@ -75,3 +128,8 @@ curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 1. check weekly how many hours of work have been logged, and against which tickets
 1. calculate averages over a specific period (and include versions)
 1. find unassigned tickets, too!
+1. check the 'completeness' of a list of tickets
+```bash
+issueKey in (OWA-1462,OWA-1372,OWA-661,OWA-666,OWA-1283,OWA-1504,OWA-959,OWA-1505,BAU-8,BAU-9,BAU-10,OWA-1496,OWA-1501,OWA-1267,OWA-1493,BAU-33,BAU-36,OWA-1293,BAU-46,OWA-1034,BAU-52,OWA-1315,OWA-1317,OWA-1334,OWA-1339,OWA-1362,OWA-1365,OWA-1499,OWA-1369,OWA-1374,OWA-1375,OWA-1376,OWA-1500,BAU-71,BAU-73,OWA-1397,OWA-1402,OWA-1426,OWA-1427,OWA-1428,OWA-1429,OWA-1431,OWA-1432,OWA-1434,OWA-1451,OWA-1453,OWA-1455,OWA-1458,OWA-1481,OWA-1482)
+```
+1. use analytics from CircleCI to get deployments
