@@ -38,6 +38,9 @@ class JIRA_Fetcher:
         if version is not None:
             self.__version = version
 
+        self.__where = {'board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT',
+                        'backlog': 'Backlog'}
+
     def get_now_as_a_string(self):
         now_time_object = datetime.datetime.now()
         return now_time_object.strftime("%Y%m%d_%H%M")
@@ -106,6 +109,15 @@ class JIRA_Fetcher:
         return not_having_time_estimation
 
     def get_quality_from_the_main_board_for_a_specific_version(self, project_name: str = None, version: str = None):
+        where_option = 'board'
+        return self.get_quality_for_a_specific_version(where_option, project_name, version)
+
+    def get_quality_from_backlog_for_a_specific_version(self, project_name: str = None, version: str = None):
+        where_option = 'backlog'
+        return self.get_quality_for_a_specific_version(where_option, project_name, version)
+
+
+    def get_quality_for_a_specific_version(self, where_option: str, project_name: str = None, version: str = None):
         if version is None:
             version = self.__version
 
@@ -115,7 +127,12 @@ class JIRA_Fetcher:
 
         output = {'timestamp_this_was_created':self.get_now_as_a_string()}
         output['version'] = version
-        output['where'] = 'Kanban Board'
+
+        if where_option == 'board':
+            output['where'] = 'Kanban Board'
+        else:
+            output['where'] = '(just the) Backlog'
+
         output['feature'] = []
         output['maintenance'] = []
         output['rework'] = []
@@ -131,8 +148,9 @@ class JIRA_Fetcher:
                                   "total_number_of_items": 0,
                                   "failure_rate": 0}
 
+        columns_to_query = self.__where[where_option]
 
-        query = 'issuetype in (Bug, Story) AND project = '+project_name+' AND fixVersion = '+version+' AND resolution = Unresolved AND status in (Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT) ORDER BY priority DESC, updated DESC'
+        query = 'issuetype in (Bug, Story) AND project = '+project_name+' AND fixVersion = '+version+' AND resolution = Unresolved AND status in ('+columns_to_query+') ORDER BY priority DESC, updated DESC'
         results = self.__jira_handler.search_issues(query, startAt=0, maxResults=200)
 
 
@@ -261,8 +279,8 @@ class JIRA_Fetcher:
 
         print('total tickets:', str(total_number_of_items))
         if number_of_unclassified_items != 0:
-            print('\tBUT, ', str(number_of_unclassified_items), ' tickets are unclassified! (i.e., ', ", ".join(unclassified_tickets), ')')
-        print("with failure_rate:", str(failure_rate*100), "%")
+            print('\tBUT, ', str(number_of_unclassified_items), 'more tickets are unclassified! (i.e., ', ", ".join(unclassified_tickets), ')')
+        print("with failure_rate:", str(round(failure_rate*100, 2)), "%")
 
 
 
