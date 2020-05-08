@@ -108,7 +108,8 @@ curl -X GET https://circleci.com/api/v2/project/gh/pure-escapes/webapp-frontend/
 
 https://circleci.com/docs/api/v2/#circleci-api 
 https://circleci.com/docs/2.0/api-developers-guide/#section=reference
-
+https://circleci.com/docs/2.0/api-intro/#section=reference
+https://circleci.com/docs/
 
 # Usage
 

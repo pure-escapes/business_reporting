@@ -105,7 +105,86 @@ class JIRA_Fetcher:
 
         return not_having_time_estimation
 
+    def get_quality_from_the_main_board_for_a_specific_version(self, project_name: str = None, version: str = None):
+        if version is None:
+            version = self.__version
 
+        if project_name is None:
+            project_name = self.__project_name
+
+
+        output = {'timestamp_this_was_created':self.get_now_as_a_string()}
+        output['version'] = version
+        output['where'] = 'Kanban Board'
+        output['feature'] = []
+        output['maintenance'] = []
+        output['rework'] = []
+        output['defect'] = []
+        output['unclassified'] = []
+        output['statistics'] = {"number_of_features": 0,
+                                "number_of_maintenance": 0,
+                                "number_of_rework": 0,
+                                "number_of_calculations": 0,
+                                "number_of_unclassified": 0}
+        output['calculations'] = {"value_supply": 0,
+                                  "failure_supply": 0,
+                                  "total_number_of_items": 0,
+                                  "failure_rate": 0}
+
+
+        query = 'issuetype in (Bug, Story) AND project = '+project_name+' AND fixVersion = '+version+' AND resolution = Unresolved AND status in (Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT) ORDER BY priority DESC, updated DESC'
+        results = self.__jira_handler.search_issues(query, startAt=0, maxResults=200)
+
+
+
+        for issue in results:
+
+            obj = {}
+            ticket_name = str(issue.key)
+            status = str(issue.fields.status)
+            member_of_team = str(issue.fields.assignee)
+            jira_issue_type = str(issue.fields.issuetype).lower()
+            item_type = str(issue.fields.customfield_10037).lower()
+
+            if item_type == 'feature':
+                output['feature'].append(ticket_name)
+            if item_type == 'maintenance':
+                output['maintenance'].append(ticket_name)
+            if item_type == 'rework':
+                output['rework'].append(ticket_name)
+            if item_type == 'defect':
+                output['defect'].append(ticket_name)
+            if item_type not in ('feature', 'maintenance', 'rework', 'defect'):
+                output['unclassified'].append(ticket_name)
+
+
+
+        number_of_features = len(output['feature'])
+        number_of_maintenance = len(output['maintenance'])
+        number_of_rework = len(output['rework'])
+        number_of_defect = len(output['defect'])
+        number_of_unclassified = len(output['unclassified'])
+        output['statistics']["number_of_features"] = number_of_features
+        output['statistics']["number_of_maintenance"] = number_of_maintenance
+        output['statistics']["number_of_rework"] = number_of_rework
+        output['statistics']["number_of_calculations"] = number_of_defect
+        output['statistics']["number_of_unclassified"] = number_of_unclassified
+
+        value_supply = number_of_features + number_of_maintenance
+        failure_supply = number_of_rework + number_of_defect
+        total_number_of_items = value_supply + failure_supply
+        failure_rate = 1.0 * failure_supply / total_number_of_items
+        output['calculations']["value_supply"] = value_supply
+        output['calculations']["failure_supply"] = failure_supply
+        output['calculations']["total_number_of_items"] = total_number_of_items
+        output['calculations']["failure_rate"] = failure_rate
+
+
+
+
+
+
+        return output
 
     def get_stories_and_bugs_tickets_that_are_in_progress_for_a_specific_version(self, project_name: str = None, version: str = None):
         if version is None:
@@ -171,6 +250,21 @@ class JIRA_Fetcher:
                 print(item)
                 for issue_name, ticket in input[item].items():
                     print("\t", issue_name, ticket)
+
+    def print_short_message_for_quality_assessment(self, input: dict):
+        print('Quality assessment of ', input["where"], ' for version ', input["version"], ', generated at',input["timestamp_this_was_created"], ":")
+        total_number_of_items = input['calculations']['total_number_of_items']
+        number_of_unclassified_items = input['statistics']['number_of_unclassified']
+        unclassified_tickets = input['unclassified']
+        failure_rate = input['calculations']['failure_rate']
+
+
+        print('total tickets:', str(total_number_of_items))
+        if number_of_unclassified_items != 0:
+            print('\tBUT, ', str(number_of_unclassified_items), ' tickets are unclassified! (i.e., ', ", ".join(unclassified_tickets), ')')
+        print("with failure_rate:", str(failure_rate*100), "%")
+
+
 
 def try_with_standard_HTML():
     url = "https://pureescapes.atlassian.net"

@@ -56,3 +56,17 @@ class Test_JIRAFetcher(unittest.TestCase):
 
         self.__j1.print_short_message_for_update(report_object)
 
+
+    def test_get_issues_by_issue_type_from_the_main_board_for_a_specific_version(self):
+        project_name = 'OWA'
+        version = "1.1.0"
+
+        report_object = self.__j1.get_quality_from_the_main_board_for_a_specific_version(
+            project_name=project_name, version=version)
+        formatted_output = json.dumps(report_object, indent=2)
+        print(formatted_output)
+
+        self.__j1.print_short_message_for_quality_assessment(report_object)
+
+
+
