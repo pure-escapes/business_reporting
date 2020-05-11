@@ -191,11 +191,19 @@ class JIRA_Fetcher:
         value_supply = number_of_features + number_of_maintenance
         failure_supply = number_of_rework + number_of_defect
         total_number_of_items = value_supply + failure_supply
-        failure_rate = 1.0 * failure_supply / total_number_of_items
-        output['calculations']["value_supply"] = value_supply
-        output['calculations']["failure_supply"] = failure_supply
-        output['calculations']["total_number_of_items"] = total_number_of_items
-        output['calculations']["failure_rate"] = failure_rate
+
+        if total_number_of_items == 0:
+            output['calculations']["value_supply"] = 0
+            output['calculations']["failure_supply"] = 0
+            output['calculations']["total_number_of_items"] = total_number_of_items
+            output['calculations']["failure_rate"] = 1
+
+        else:
+            failure_rate = 1.0 * failure_supply / total_number_of_items
+            output['calculations']["value_supply"] = value_supply
+            output['calculations']["failure_supply"] = failure_supply
+            output['calculations']["total_number_of_items"] = total_number_of_items
+            output['calculations']["failure_rate"] = failure_rate
 
 
 
@@ -269,7 +277,7 @@ class JIRA_Fetcher:
                 for issue_name, ticket in input[item].items():
                     print("\t", issue_name, ticket)
 
-    def print_short_message_for_quality_assessment(self, input: dict):
+    def print_short_message_for_quality_assessment(self, input: dict, toggle_for_PS = True):
         print('Quality assessment of ', input["where"], ' for version ', input["version"], ', generated at',input["timestamp_this_was_created"], ":")
         total_number_of_items = input['calculations']['total_number_of_items']
         number_of_unclassified_items = input['statistics']['number_of_unclassified']
@@ -280,8 +288,12 @@ class JIRA_Fetcher:
         print('total tickets:', str(total_number_of_items))
         if number_of_unclassified_items != 0:
             print('\tBUT, ', str(number_of_unclassified_items), 'more tickets are unclassified! (i.e., ', ", ".join(unclassified_tickets), ')')
-        print("with failure_rate:", str(round(failure_rate*100, 2)), "%")
+        print("with failure_rate:", str(round(failure_rate*100, 2)), "% (ideally, as low as possible)")
 
+        if toggle_for_PS == True :
+            print("\n")
+            print('\tPS1: more info about "how to read this?" at https://pureescapes.atlassian.net/wiki/spaces/PEOWA/pages/309493777/Refining+the+Agile+process#Assessing-versions-%26-backlog')
+            print('\tPS2: the unclassified tickets are not considered in the calculations')
 
 
 def try_with_standard_HTML():

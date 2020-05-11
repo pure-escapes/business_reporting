@@ -76,6 +76,27 @@ class Test_JIRAFetcher(unittest.TestCase):
         report_object = self.__j1.get_quality_from_backlog_for_a_specific_version(
             project_name=project_name, version=version)
         formatted_output = json.dumps(report_object, indent=2)
-        print(formatted_output)
+        # print(formatted_output)
 
         self.__j1.print_short_message_for_quality_assessment(report_object)
+
+    def test_assess_the_quality_of_multiple_versions_in_backlog(self):
+        project_name = 'OWA'
+        assessment_by_versions = {
+                            "1.1.0":{},
+                            "1.2.0":{},
+                            "1.3.0":{},
+                            "2.0.0":{}
+                            }
+
+        for version in assessment_by_versions.keys():
+            print('checking version', version)
+            report_object = self.__j1.get_quality_from_backlog_for_a_specific_version(
+                project_name=project_name, version=version)
+
+            assessment_by_versions[version] = report_object
+
+        formatted_output = json.dumps(assessment_by_versions, indent=2)
+        print(formatted_output)
+
+
