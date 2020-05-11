@@ -116,6 +116,26 @@ class JIRA_Fetcher:
         where_option = 'backlog'
         return self.get_quality_for_a_specific_version(where_option, project_name, version)
 
+    def get_quality_of_multiple_versions(self, project_name: str, assessment_by_versions: dict):
+        '''
+
+        :param project_name: e.g. 'OWA'
+        :param assessment_by_versions: e.g. {
+                            "1.1.0":{},
+                            "1.2.0":{},
+                            "1.3.0":{},
+                            "2.0.0":{}
+                            }
+        :return:
+        '''
+        for version in assessment_by_versions.keys():
+            # print('checking version', version)
+            report_object = self.get_quality_from_backlog_for_a_specific_version(
+                project_name=project_name, version=version)
+
+            print('version', version, ', failure rate:',report_object['calculations']['failure_rate']*100)
+            assessment_by_versions[version] = report_object
+
 
     def get_quality_for_a_specific_version(self, where_option: str, project_name: str = None, version: str = None):
         if version is None:
@@ -287,6 +307,7 @@ class JIRA_Fetcher:
 
         print('total tickets:', str(total_number_of_items))
         if number_of_unclassified_items != 0:
+            unclassified_tickets.sort()
             print('\tBUT, ', str(number_of_unclassified_items), 'more tickets are unclassified! (i.e., ', ", ".join(unclassified_tickets), ')')
         print("with failure_rate:", str(round(failure_rate*100, 2)), "% (ideally, as low as possible)")
 

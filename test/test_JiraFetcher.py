@@ -71,7 +71,7 @@ class Test_JIRAFetcher(unittest.TestCase):
 
     def test_get_issues_by_issue_type_from_the_backlog_for_a_specific_version(self):
         project_name = 'OWA'
-        version = "1.1.0"
+        version = "1.2.0"
 
         report_object = self.__j1.get_quality_from_backlog_for_a_specific_version(
             project_name=project_name, version=version)
@@ -89,14 +89,18 @@ class Test_JIRAFetcher(unittest.TestCase):
                             "2.0.0":{}
                             }
 
-        for version in assessment_by_versions.keys():
-            print('checking version', version)
-            report_object = self.__j1.get_quality_from_backlog_for_a_specific_version(
-                project_name=project_name, version=version)
+        self.__j1.get_quality_of_multiple_versions(project_name, assessment_by_versions)
 
-            assessment_by_versions[version] = report_object
+
 
         formatted_output = json.dumps(assessment_by_versions, indent=2)
         print(formatted_output)
 
 
+
+# todo find how much time has been booked in a period
+# todo find any tickets without epics (in backlog & kanban board)
+# todo do quality analysis of the kanban board
+# todo calculate how to re-assign the work, so as to finish earlier, based on the availability of developers
+# todo estimate lead time
+# todo estimate WIP
