@@ -104,6 +104,13 @@ getting job details for a specific job number
 curl -X GET https://circleci.com/api/v2/project/gh/pure-escapes/webapp-frontend/job/706 --header 'Content-Type: application/json' --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
 ```
 
+getting the status of specific job for a specific branch
+```html
+curl -X GET https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-backend/workflows/build-and-deploy/jobs/deploy_sandbox?branch=sandbox --header "Circle-Token: $PE_CIRCLECI_API_TOKEN"
+```
+
+
+
 ## references
 
 https://circleci.com/docs/api/v2/#circleci-api 
