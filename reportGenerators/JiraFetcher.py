@@ -298,7 +298,7 @@ class JIRA_Fetcher:
                     print("\t", issue_name, ticket)
 
     def print_short_message_for_quality_assessment(self, input: dict, toggle_for_PS = True):
-        print('Quality assessment of ', input["where"], ' for version ', input["version"], ', generated at',input["timestamp_this_was_created"], ":")
+        print('Agile Quality assessment (via Jira) of ', input["where"], ' for version ', input["version"], ', generated at',input["timestamp_this_was_created"], ":")
         total_number_of_items = input['calculations']['total_number_of_items']
         number_of_unclassified_items = input['statistics']['number_of_unclassified']
         unclassified_tickets = input['unclassified']

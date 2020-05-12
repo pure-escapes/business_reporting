@@ -18,8 +18,14 @@ import requests
 import dateutil
 from dateutil.parser import parse
 
+from reportGenerators.CircleCI_Fetcher import CircleCI_Fetcher
+
 
 class Test_CircleCI_Fetcher(unittest.TestCase):
+
+    def setUp(self) -> None:
+
+        self.__c1 = CircleCI_Fetcher()
 
     def test_get_successful_jobs_of_a_specific_project_that_started_within_a_specific_period(self):
         '''
@@ -27,45 +33,51 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
         :return:
         '''
 
-        selected_year = 2020
-        selected_month = 3
-        start_date = 2
-        end_date = 1
+        start_date_as_str = "1/4/2020"
+        end_date_as_str = "29/4/2020"
 
-        token_value = os.environ.get('PE_CIRCLECI_API_TOKEN')
-        headers = {
-            'Circle-Token': token_value,
+        config = {}
+        config["start_date_as_str"] = start_date_as_str
+        config["end_date_as_str"] = end_date_as_str
+        config["circleCI_project"] = "webapp-backend"
+        config["name_of_job_that_deploys_to_production"] = "deploy_sandbox"
+        config["name_of_github_branch_related_to_production"] = "sandbox"
+
+        self.__c1.get_deployments_of_a_branch_within_a_specific_range_of_dates(config)
+
+    def test_check_the_most_important_branches(self):
+        start_date_as_str = "1/4/2020"
+        end_date_as_str = "29/4/2020"
+
+
+        config={
+            "start_date_as_str": start_date_as_str,
+            "end_date_as_str": end_date_as_str,
+            "projects":{
+                "webapp-backend": {
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated" : {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments":0
+                    }
+                },
+                "webapp-frontend": {
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                }
+            }
         }
 
-        params = (
-            ('branch', 'sandbox'),
-        )
 
-        response = requests.get(
-            'https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-backend/workflows/build-and-deploy/jobs/deploy_sandbox',
-            headers=headers, params=params)
+        t = self.__c1.check_several_branches(config)
 
-        # NB. Original query string below. It seems impossible to parse and
-        # reproduce query strings 100% accurately so the one below is given
-        # in case the reproduced version is not "correct".
-        # response = requests.get('https://circleci.com/api/v2/insights/gh/pure-escapes/webapp-backend/workflows/build-and-deploy/jobs/deploy_sandbox?branch=sandbox', headers=headers)
+        self.__c1.show(t)
 
 
-        print(response.text)
-
-        data_to_parse = response.json()['items']
-
-        counter_of_jobs = 0
-        counter_of_successful_jobs = 0
-        for job in data_to_parse:
-            date = parse(job["started_at"])
-
-            if (job["status"] == "success") and (date.month == selected_month) and (date.year == selected_year):
-                print(job['id'], date.date(), date.month, date.year)
-                counter_of_successful_jobs += 1
-            counter_of_jobs += 1
-
-        efficiency = round(100.0 * counter_of_successful_jobs / counter_of_jobs, 2)
-        print("in", selected_month,'total deployments(as jobs):', counter_of_jobs, "(", efficiency ,"% successful)")
-
-    #todo use PycURL instead of `requests`
