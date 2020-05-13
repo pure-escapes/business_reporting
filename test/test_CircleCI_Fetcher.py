@@ -19,6 +19,7 @@ import dateutil
 from dateutil.parser import parse
 
 from reportGenerators.CircleCI_Fetcher import CircleCI_Fetcher
+import calendar
 
 
 class Test_CircleCI_Fetcher(unittest.TestCase):
@@ -26,6 +27,7 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
     def setUp(self) -> None:
 
         self.__c1 = CircleCI_Fetcher()
+
 
     def test_get_successful_jobs_of_a_specific_project_that_started_within_a_specific_period(self):
         '''
@@ -45,39 +47,32 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
 
         self.__c1.get_deployments_of_a_branch_within_a_specific_range_of_dates(config)
 
-    def test_check_the_most_important_branches(self):
+    def test_check_the_most_important_branches_between_to_dates(self):
         start_date_as_str = "1/4/2020"
-        end_date_as_str = "29/4/2020"
+        end_date_as_str = "30/4/2020"
+
+        config = self.__c1.get_basic_configuration_file()
+        config["start_date_as_str"] = start_date_as_str
+        config["end_date_as_str"] = end_date_as_str
+        report_object = self.__c1.check_several_branches(config)
+
+        self.__c1.show(report_object)
+
+    def test_check_the_most_important_branches_for_a_particular_month(self):
+        selected_month = 5
+        selected_year = 2020
+
+        start_date_as_str = "1/"+str(selected_month)+"/"+str(selected_year)
+        last_day = str(calendar.monthrange(selected_year, selected_month)[1])
+        end_date_as_str = last_day+"/"+str(selected_month)+"/"+str(selected_year)
+
+        config = self.__c1.get_basic_configuration_file()
+        config["start_date_as_str"] = start_date_as_str
+        config["end_date_as_str"] = end_date_as_str
 
 
-        config={
-            "start_date_as_str": start_date_as_str,
-            "end_date_as_str": end_date_as_str,
-            "projects":{
-                "webapp-backend": {
-                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
-                    "name_of_github_branch_related_to_production": "sandbox",
-                    "calculated" : {
-                        "number_of_successful_deployments": 0,
-                        "efficiency": 0.0,
-                        "total_number_of_deployments":0
-                    }
-                },
-                "webapp-frontend": {
-                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
-                    "name_of_github_branch_related_to_production": "sandbox",
-                    "calculated": {
-                        "number_of_successful_deployments": 0,
-                        "efficiency": 0.0,
-                        "total_number_of_deployments": 0
-                    }
-                }
-            }
-        }
+        report_object = self.__c1.check_several_branches(config)
 
-
-        t = self.__c1.check_several_branches(config)
-
-        self.__c1.show(t)
+        self.__c1.show(report_object)
 
 

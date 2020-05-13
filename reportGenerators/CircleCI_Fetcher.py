@@ -38,6 +38,8 @@ class CircleCI_Fetcher():
         start_date_as_str = config["start_date_as_str"]
         end_date_as_str = config["end_date_as_str"]
         circleCI_project = config["circleCI_project"]
+        circleCI_workflow = config["circleCI_workflow_name"]
+
         name_of_job_that_deploys_to_production = config["name_of_job_that_deploys_to_production"]
         name_of_github_branch_related_to_production = config["name_of_github_branch_related_to_production"]
 
@@ -64,8 +66,9 @@ class CircleCI_Fetcher():
             ('branch', name_of_github_branch_related_to_production),
         )
 
-        URL = 'https://circleci.com/api/v2/insights/gh/pure-escapes/'+circleCI_project+'/workflows/build-and-deploy/jobs/'+name_of_job_that_deploys_to_production
+        URL = 'https://circleci.com/api/v2/insights/gh/pure-escapes/'+circleCI_project+'/workflows/'+circleCI_workflow+'/jobs/'+name_of_job_that_deploys_to_production
         response = requests.get(URL,headers=headers, params=params)
+
 
         # NB. Original query string below. It seems impossible to parse and
         # reproduce query strings 100% accurately so the one below is given
@@ -101,6 +104,87 @@ class CircleCI_Fetcher():
 
         return counter_of_successful_jobs, efficiency, counter_of_jobs
 
+    def get_basic_configuration_file(self):
+        config = {
+            "start_date_as_str": "3/4/2020",
+            "end_date_as_str": "29/4/2020",
+            "projects": {
+
+                "webapp-frontend": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-admin": {
+                    "circleCI_workflow_name":"build_deploy",
+                    "name_of_job_that_deploys_to_production": "build_deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-client-api": {
+                    "circleCI_workflow_name": "deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-admin-api": {
+                    "circleCI_workflow_name": "build-and-deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-backend": {
+                    "circleCI_workflow_name": "build-and-deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "pdf-service": {
+                    "circleCI_workflow_name": "build-and-deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "events-service": {
+                    "circleCI_workflow_name": "deploy",
+                    "name_of_job_that_deploys_to_production": "build_deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                }
+            }
+        }
+
+        return config
+
     def check_several_branches(self, config):
         output = config
         output['timestamp_this_was_created'] = self.get_now_as_a_string()
@@ -110,6 +194,7 @@ class CircleCI_Fetcher():
             temp_dict = {}
             temp_dict["start_date_as_str"] = config["start_date_as_str"]
             temp_dict["end_date_as_str"] = config["end_date_as_str"]
+            temp_dict["circleCI_workflow_name"] = config["projects"][job]["circleCI_workflow_name"]
             temp_dict["circleCI_project"] = job
             temp_dict["name_of_job_that_deploys_to_production"] = config["projects"][job]["name_of_job_that_deploys_to_production"]
             temp_dict["name_of_github_branch_related_to_production"] = config["projects"][job]["name_of_github_branch_related_to_production"]
@@ -135,6 +220,5 @@ class CircleCI_Fetcher():
             circleCI_project = job
             counter_of_jobs = input["projects"][job]["calculated"]["total_number_of_deployments"]
             efficiency = input["projects"][job]["calculated"]["efficiency"]
-            print("\t", circleCI_project, " between", start_date_as_str, "and", end_date_as_str,
-                  ', total deployments(i.e., CircleCI jobs) to production (i.e., sandbox):', counter_of_jobs, "(",
+            print("\t", circleCI_project, ', total deployments(i.e., CircleCI jobs) to production (i.e., sandbox):', counter_of_jobs, "(",
                   efficiency, "% successful)")
