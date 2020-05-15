@@ -104,3 +104,4 @@ class Test_JIRAFetcher(unittest.TestCase):
 # todo calculate how to re-assign the work, so as to finish earlier, based on the availability of developers
 # todo estimate lead time
 # todo estimate WIP
+# todo check tickets in the backlog (if the important information is missing; epic, version, story points, original estimation, etc)

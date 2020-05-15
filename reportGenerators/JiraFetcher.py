@@ -245,7 +245,7 @@ class JIRA_Fetcher:
         output['where'] = 'Kanban Board'
 
 
-        query = 'issuetype in (Bug, Story) AND project = '+project_name+' AND fixVersion = '+version+' AND resolution = Unresolved AND status in (Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT) ORDER BY priority DESC, updated DESC'
+        query = 'issuetype in (Bug, Story) AND project = '+project_name+' AND fixVersion = '+version+' AND resolution = Unresolved AND status in (Blocked, "Code Review", "In Development", "Preparing Tests", "Selected for Development") ORDER BY priority DESC, updated DESC'
         results = self.__jira_handler.search_issues(query, startAt=0, maxResults=200)
 
 
@@ -272,7 +272,7 @@ class JIRA_Fetcher:
                     output[member_of_team][ticket_name] = {'column': status}
 
                 # print(issue.key, issue_type, 'no time estimate from', member_of_team)
-                output[member_of_team][ticket_name] = {'time_estimation':'<---please time-estimate'}
+                output[member_of_team][ticket_name] = {'remaining_time':'<---please add remaining time'}
 
 
             if being_a_story_without_story_points == True:
@@ -283,7 +283,7 @@ class JIRA_Fetcher:
                 if 'column' not in output[member_of_team][ticket_name].keys():
                     output[member_of_team][ticket_name] = {'column': status}
                 # print(issue.key, issue_type,  'no story points from', member_of_team)
-                output[member_of_team][ticket_name] = {'story points': '<---please estimate'}
+                output[member_of_team][ticket_name] = {'story points': '<---please add story points'}
 
         return output
 
@@ -291,11 +291,17 @@ class JIRA_Fetcher:
     def print_short_message_for_update(self, input: dict):
         print('Updates required for ', input["where"], ', generated at',input["timestamp_this_was_created"], ":")
 
+
+
+        counter=0
         for item in input.keys():
             if item not in ("timestamp_this_was_created", "version", "where"):
                 print(item)
                 for issue_name, ticket in input[item].items():
                     print("\t", issue_name, ticket)
+                    counter += 1
+        if counter == 0:
+            print("\tAll good :)")
 
     def print_short_message_for_quality_assessment(self, input: dict, toggle_for_PS = True):
         print('Agile Quality assessment (via Jira) of ', input["where"], ' for version ', input["version"], ', generated at',input["timestamp_this_was_created"], ":")
@@ -315,6 +321,7 @@ class JIRA_Fetcher:
             print("\n")
             print('\tPS1: more info about "how to read this?" at https://pureescapes.atlassian.net/wiki/spaces/PEOWA/pages/309493777/Refining+the+Agile+process#Assessing-versions-%26-backlog')
             print('\tPS2: the unclassified tickets are not considered in the calculations')
+            print('\tPS3: how to log time -> https://support.atlassian.com/jira-software-cloud/docs/log-time-on-an-issue')
 
 
 def try_with_standard_HTML():
