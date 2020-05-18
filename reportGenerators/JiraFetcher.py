@@ -16,6 +16,9 @@ import json
 import os
 import datetime
 
+from typing import Any, Dict, Generator, List, Tuple, Sequence
+
+
 
 class JIRA_Fetcher:
     __jira_handler = None
@@ -39,7 +42,8 @@ class JIRA_Fetcher:
             self.__version = version
 
         self.__where = {'board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT',
-                        'backlog': 'Backlog'}
+                        'backlog': 'Backlog',
+                        }
 
     def get_now_as_a_string(self):
         now_time_object = datetime.datetime.now()
@@ -322,6 +326,125 @@ class JIRA_Fetcher:
             print('\tPS1: more info about "how to read this?" at https://pureescapes.atlassian.net/wiki/spaces/PEOWA/pages/309493777/Refining+the+Agile+process#Assessing-versions-%26-backlog')
             print('\tPS2: the unclassified tickets are not considered in the calculations')
             print('\tPS3: how to log time -> https://support.atlassian.com/jira-software-cloud/docs/log-time-on-an-issue')
+
+
+    def get_worklog_for_ticket(self, issue):
+        ticket = issue.key
+        # ID = 11810
+        ID = issue.id
+
+        import requests
+        from requests.auth import HTTPBasicAuth
+        import json
+
+        # options["server"]
+        base_url = "https://pureescapes.atlassian.net"
+        url = base_url+"/rest/api/3/worklog/list"
+
+        # basic_auth = (os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER")
+
+        auth = HTTPBasicAuth(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER"))
+
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+
+        payload = json.dumps({
+            "ids": [
+                ID
+            ]
+        })
+
+        response = requests.request(
+            "POST",
+            url,
+            data=payload,
+            headers=headers,
+            auth=auth
+        )
+
+        print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
+
+
+
+    def get_breakdown_of_tickets_with_hours_booked(self,start_date: datetime, end_date: datetime, project_name: str, version: str):
+        '''
+        some approach:
+
+        A.Use GET /rest/api/3/worklog/updated to get the IDs of worklogs in the time period. The timestamp refers to the time the worklog has been created/updated, not the date to which the entry refers. To make sure I have everything, I just go later in the past. The call is paginated, and the response is small, so listing too much is not a big problem. You just need to remove the worklogs you don't want afterwards
+        B.Use POST /rest/api/3/worklog/list to get the actual worklogs. The payload is the list of IDs to you got in the first step. This is limited to 1000 entries, but you can call it multiple times
+        C.Bonus - If you need the issues for the retrieved worklogs, use POST /rest/api/3/search. You need to use POST, because the query will be very long and does not fit in the URL. You can build the query from the issue ids in the worklogs retrieved in step 2 (`id in (12345, 456789, ...)`
+
+
+
+        :param: start (inclusive)
+        :return: end  (inclusive)
+        '''
+
+        start_date_as_str =  start_date.strftime("%Y/%m/%d")
+        end_date_as_str = end_date.strftime("%Y/%m/%d")
+        output = {"timestamp_this_was_created":self.get_now_as_a_string(),
+                  "version":str(version),
+                  "where":self.__where['board'],
+                  "start_date":start_date.strftime("%d/%m/%Y"),
+                  "end_date":end_date.strftime("%d/%m/%Y"),
+                  "members":{}
+                  }
+        template_of_JQL_command = 'issuetype in (Bug, Story) AND project = "{}" AND fixVersion = "{}"  AND status in ("Code Review", "In Development", "Preparing Tests",QA, UAT, Done) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'
+        JQL_command = template_of_JQL_command.format(project_name, version, start_date_as_str, end_date_as_str)
+
+
+
+        results = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+
+        for issue in results:
+
+
+            ticket_name = str(issue.key)
+            status = str(issue.fields.status)
+            member_of_team = str(issue.fields.assignee)
+            jira_issue_type = str(issue.fields.issuetype).lower()
+            item_type = str(issue.fields.customfield_10037).lower()
+
+            if member_of_team not in output["members"].keys():
+                output["members"][member_of_team] = {}
+
+            hours_booked_on_this_ticket = issue.fields.timespent/3600
+            temp_data = {ticket_name:{'total_hours_booked':hours_booked_on_this_ticket}}
+            output["members"][member_of_team].update(temp_data)
+
+
+
+
+        return output
+
+
+    def show_message_for_logged_work(self, input: dict, show_totals=False):
+        print('For version', input["version"],'between', input["start_date"], 'and', input["end_date"],'the following members of the team have logged their time against tickets:')
+        print('by considering columns:', input["where"],
+              ', generated at', input["timestamp_this_was_created"], ":")
+
+
+        total_hours_booked = 0
+        for member in input["members"].keys():
+            print(member)
+            for ticket in input["members"][member].keys():
+                output_line=str(ticket)
+                temp_hours_for_this_ticket = input["members"][member][ticket]['total_hours_booked']
+                total_hours_booked += temp_hours_for_this_ticket
+                if show_totals is True:
+                    output_line += " {"+str(round(temp_hours_for_this_ticket,2))+" hours}"
+                print("\t",output_line)
+
+
+        if show_totals is True:
+            print('Total:',round(total_hours_booked,2),'hours (=',round(total_hours_booked/8,2),'days, 8hr = 1day)')
+
+        print("")
+
+
+
 
 
 def try_with_standard_HTML():

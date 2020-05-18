@@ -15,6 +15,7 @@ import os
 import json
 
 from reportGenerators.JiraFetcher import JIRA_Fetcher
+import datetime
 
 class Test_JIRAFetcher(unittest.TestCase):
 
@@ -95,6 +96,32 @@ class Test_JIRAFetcher(unittest.TestCase):
 
         formatted_output = json.dumps(assessment_by_versions, indent=2)
         print(formatted_output)
+
+
+
+    def test_hours_booked_against_tickets_in_the_main_board_for_a_specific_week(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0","1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 5, 11)
+        end_date = datetime.datetime(2020, 5, 15)
+
+        for version in target_versions:
+            report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name, version)
+
+            # formatted_output = json.dumps(report_object, indent=2)
+            #
+            #
+            # print(formatted_output)
+
+            self.__j1.show_message_for_logged_work(report_object, True)
+        #todo: this approach does not check if on a day a user booked 40d!!!! (but also possibly this might not be stored on jira's data model)
+
+    def test_get_which_tickets_had_pairing_and_collaboration_in_the_main_board_for_a_specific_week(self):
+        #identify the ticket numbers, where the main assignee and another member had booked time
+        pass
+
+    def test_find_out_tickets_that_potentially_should_turn_to_epic_and_be_rescoped(self):
+        pass
 
 
 
