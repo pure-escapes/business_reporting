@@ -43,7 +43,13 @@ class JIRA_Fetcher:
 
         self.__where = {'board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT',
                         'backlog': 'Backlog',
+                        'full_board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT, Done',
                         }
+
+        self.__types_of_tickets= { 'stories_and_bugs':'(Bug,Story)',
+                                   'all_possible':'(Bug,Story,Task, Sub-task)'
+
+        }
 
     def get_now_as_a_string(self):
         now_time_object = datetime.datetime.now()
@@ -329,6 +335,12 @@ class JIRA_Fetcher:
 
 
     def get_worklog_for_ticket(self, issue):
+        '''
+        INCOMPLETE, or at least not working. empty objects are generated. the issue is related to IDs
+        from https://developer.atlassian.com/cloud/jira/platform/rest/v3/?_ga=2.226989019.757809754.1589814022-836559980.1589401490#api-rest-api-3-worklog-list-post
+        :param issue:
+        :return:
+        '''
         ticket = issue.key
         # ID = 11810
         ID = issue.id
@@ -386,13 +398,14 @@ class JIRA_Fetcher:
         end_date_as_str = end_date.strftime("%Y/%m/%d")
         output = {"timestamp_this_was_created":self.get_now_as_a_string(),
                   "version":str(version),
-                  "where":self.__where['board'],
+                  "where":self.__where['full_board'],
                   "start_date":start_date.strftime("%d/%m/%Y"),
                   "end_date":end_date.strftime("%d/%m/%Y"),
-                  "members":{}
+                  "members":{},
+                  "tickets_considered":self.__types_of_tickets['all_possible']
                   }
-        template_of_JQL_command = 'issuetype in (Bug, Story) AND project = "{}" AND fixVersion = "{}"  AND status in ("Code Review", "In Development", "Preparing Tests",QA, UAT, Done) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'
-        JQL_command = template_of_JQL_command.format(project_name, version, start_date_as_str, end_date_as_str)
+        template_of_JQL_command = 'issuetype in {}  AND project = "{}" AND fixVersion = "{}"  AND status in ("Code Review", "In Development", "Preparing Tests",QA, UAT, Done) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'
+        JQL_command = template_of_JQL_command.format(output["tickets_considered"],project_name, version, start_date_as_str, end_date_as_str)
 
 
 
@@ -421,7 +434,7 @@ class JIRA_Fetcher:
 
 
     def show_message_for_logged_work(self, input: dict, show_totals=False):
-        print('For version', input["version"],'between', input["start_date"], 'and', input["end_date"],'the following members of the team have logged their time against tickets:')
+        print('For version', input["version"],'between', input["start_date"], 'and', input["end_date"],'the following members of the team have logged their time against tickets ',input["tickets_considered"],':')
         print('by considering columns:', input["where"],
               ', generated at', input["timestamp_this_was_created"], ":")
 

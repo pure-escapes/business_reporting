@@ -70,7 +70,6 @@ jira = "*"
 requests = "*"
 filemagic = "*"
 requests-oauthlib = "*"
-requests-kerberos = "*"
 tinydb = "*"
 
 [requires]
