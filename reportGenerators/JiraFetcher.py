@@ -398,7 +398,7 @@ class JIRA_Fetcher:
         :return: end  (inclusive)
         '''
 
-        start_date_as_str =  start_date.strftime("%Y/%m/%d")
+        start_date_as_str = start_date.strftime("%Y/%m/%d")
         end_date_as_str = end_date.strftime("%Y/%m/%d")
         output = {"timestamp_this_was_created":self.get_now_as_a_string(),
                   "version":str(version),
@@ -460,10 +460,13 @@ class JIRA_Fetcher:
 
         print("")
 
-    def get_time_tracking(self, ticket: str):
-        # This code sample uses the 'requests' library:
-        # http://docs.python-requests.org
-        d = {""}
+    def get_time_tracking_of_a_ticket_per_user(self, ticket: str):
+
+        time_tracking = {"timestamp_this_was_created":self.get_now_as_a_string(),
+                         'comments':'the values represent time booked in seconds',
+                            "ticket": ticket,
+                             "members": {}
+                         }
 
         base_url = "https://pureescapes.atlassian.net"
         url = base_url+"/rest/api/2/issue/"+ticket+"/worklog"
@@ -483,12 +486,22 @@ class JIRA_Fetcher:
 
         structured_output = json.loads(response.text)
 
-        for i,j in structured_output.items():
-            pass
+        for worklog_item in structured_output['worklogs']:
+            member_of_team = worklog_item['author']['displayName']
+            booked_time_in_seconds = worklog_item['timeSpentSeconds']
 
-        print(json.dumps(structured_output, sort_keys=True, indent=4, separators=(",", ": ")))
+            if member_of_team not in time_tracking['members'].keys():
+                time_tracking['members'][member_of_team] = booked_time_in_seconds
+            else:
+                time_tracking['members'][member_of_team] += booked_time_in_seconds
 
-        return d
+
+            # print (member_of_team, booked_time_in_seconds)
+
+
+
+
+        return time_tracking
 
 
 

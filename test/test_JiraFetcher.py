@@ -124,7 +124,9 @@ class Test_JIRAFetcher(unittest.TestCase):
         pass
 
     def test_time_tracking_per_user_per_stack(self):
-        self.__j1.get_time_tracking('OWA-1204')
+        output = self.__j1.get_time_tracking_of_a_ticket_per_user('OWA-1204')
+
+        print(json.dumps(output, sort_keys=True, indent=4, separators=(",", ": ")))
 
 
 
