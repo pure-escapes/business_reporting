@@ -415,10 +415,18 @@ class JIRA_Fetcher:
 
         selected_tickets = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
 
+
+        all_members_of_the_team = []
         for issue in selected_tickets:
-            member_of_team = str(issue.fields.assignee)
-            if member_of_team not in output["members"].keys():
-                output["members"].update({member_of_team: {}})
+            ticket_name = str(issue.key)
+            break_down_of_ticket_per_member = self.get_time_tracking_of_a_ticket_per_user(ticket_name)
+
+            for member in break_down_of_ticket_per_member['members'].keys():
+                if member not in all_members_of_the_team:
+                    all_members_of_the_team.append(member)
+
+        for member in all_members_of_the_team:
+            output["members"].update({member: {}})
 
 
         for issue in selected_tickets:

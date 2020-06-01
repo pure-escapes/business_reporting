@@ -59,7 +59,7 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
         self.__c1.show(report_object)
 
     def test_check_the_most_important_branches_for_a_particular_month(self):
-        selected_month = 4
+        selected_month = 5
         selected_year = 2020
 
         start_date_as_str = "1/"+str(selected_month)+"/"+str(selected_year)

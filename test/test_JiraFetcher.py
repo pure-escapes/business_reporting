@@ -102,8 +102,8 @@ class Test_JIRAFetcher(unittest.TestCase):
     def test_hours_booked_against_tickets_in_the_main_board_for_a_specific_week(self):
         project_name = 'OWA'
         target_versions = ["1.0.0","1.1.0", "1.2.0"]
-        start_date = datetime.datetime(2020, 5, 25)
-        end_date = datetime.datetime(2020, 5, 29)
+        start_date = datetime.datetime(2020, 5, 1)
+        end_date = datetime.datetime(2020, 5, 31)
 
         for version in target_versions:
             report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name, version)
