@@ -18,6 +18,10 @@ import datetime
 
 from typing import Any, Dict, Generator, List, Tuple, Sequence
 
+import requests
+from requests.auth import HTTPBasicAuth
+import json
+
 
 
 class JIRA_Fetcher:
@@ -456,6 +460,36 @@ class JIRA_Fetcher:
 
         print("")
 
+    def get_time_tracking(self, ticket: str):
+        # This code sample uses the 'requests' library:
+        # http://docs.python-requests.org
+        d = {""}
+
+        base_url = "https://pureescapes.atlassian.net"
+        url = base_url+"/rest/api/2/issue/"+ticket+"/worklog"
+
+        auth = HTTPBasicAuth(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER"))
+
+        headers = {
+            "Accept": "application/json"
+        }
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=headers,
+            auth=auth
+        )
+
+        structured_output = json.loads(response.text)
+
+        for i,j in structured_output.items():
+            pass
+
+        print(json.dumps(structured_output, sort_keys=True, indent=4, separators=(",", ": ")))
+
+        return d
+
 
 
 
@@ -491,6 +525,8 @@ def hello():
     summary = issue.fields.summary
 
     print('ticket: ', ticket, summary)
+
+
 
 if __name__ == "__main__":
     # hello()

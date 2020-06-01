@@ -48,8 +48,8 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
         self.__c1.get_deployments_of_a_branch_within_a_specific_range_of_dates(config)
 
     def test_check_the_most_important_branches_between_to_dates(self):
-        start_date_as_str = "1/4/2020"
-        end_date_as_str = "30/4/2020"
+        start_date_as_str = "18/5/2020"
+        end_date_as_str = "22/5/2020"
 
         config = self.__c1.get_basic_configuration_file()
         config["start_date_as_str"] = start_date_as_str

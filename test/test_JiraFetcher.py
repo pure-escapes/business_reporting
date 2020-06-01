@@ -123,6 +123,9 @@ class Test_JIRAFetcher(unittest.TestCase):
     def test_find_out_tickets_that_potentially_should_turn_to_epic_and_be_rescoped(self):
         pass
 
+    def test_time_tracking_per_user_per_stack(self):
+        self.__j1.get_time_tracking('OWA-1204')
+
 
 
 # todo find how much time has been booked in a period
