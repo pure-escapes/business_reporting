@@ -413,9 +413,15 @@ class JIRA_Fetcher:
 
 
 
-        results = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+        selected_tickets = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
 
-        for issue in results:
+        for issue in selected_tickets:
+            member_of_team = str(issue.fields.assignee)
+            if member_of_team not in output["members"].keys():
+                output["members"].update({member_of_team: {}})
+
+
+        for issue in selected_tickets:
 
 
             ticket_name = str(issue.key)
@@ -424,15 +430,19 @@ class JIRA_Fetcher:
             jira_issue_type = str(issue.fields.issuetype).lower()
             item_type = str(issue.fields.customfield_10037).lower()
 
-            if member_of_team not in output["members"].keys():
-                output["members"][member_of_team] = {}
+            break_down_of_ticket_per_member = self.get_time_tracking_of_a_ticket_per_user(ticket_name)
 
-            hours_booked_on_this_ticket = issue.fields.timespent/3600
-            temp_data = {ticket_name:{'total_hours_booked':hours_booked_on_this_ticket}}
-            output["members"][member_of_team].update(temp_data)
+            for member in break_down_of_ticket_per_member['members'].keys():
+                hours_booked_on_this_ticket = 0
+                if ticket_name not in output["members"][member].keys():
+                    output["members"][member].update({ticket_name: {'total_hours_booked': hours_booked_on_this_ticket}})
 
 
+            for member,booked_time_in_seconds in break_down_of_ticket_per_member['members'].items():
+                hours_booked_on_this_ticket = booked_time_in_seconds/3600
+                temp_data = {ticket_name: {'total_hours_booked': hours_booked_on_this_ticket}}
 
+                output["members"][member][ticket_name]['total_hours_booked'] += hours_booked_on_this_ticket
 
         return output
 
