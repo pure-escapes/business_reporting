@@ -75,6 +75,23 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
 
         self.__c1.show(report_object)
 
+    def test_create_reporting_file_from_the_most_important_branches_for_a_particular_month(self):
+        selected_month = 5
+        selected_year = 2020
+
+        start_date_as_str = "1/"+str(selected_month)+"/"+str(selected_year)
+        last_day = str(calendar.monthrange(selected_year, selected_month)[1])
+        end_date_as_str = last_day+"/"+str(selected_month)+"/"+str(selected_year)
+
+        config = self.__c1.get_basic_configuration_file()
+        config["start_date_as_str"] = start_date_as_str
+        config["end_date_as_str"] = end_date_as_str
+
+
+        report_object = self.__c1.check_several_branches(config)
+
+        self.__c1.create_reporting_file_for_a_month(report_object, selected_month)
+
 
     def test_progress_over_particular_months(self):
         months = [1,2,3,4]

@@ -21,6 +21,7 @@ from typing import Any, Dict, Generator, List, Tuple, Sequence
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+import csv
 
 
 
@@ -478,8 +479,74 @@ class JIRA_Fetcher:
 
         print("")
 
-    def get_time_tracking_of_a_ticket_per_user(self, ticket: str):
+    def create_data_as_csv_for_logged_work_for(self, input: dict, show_totals=False):
+        '''
+        this is intented to be used within Google data studio or other analytics platform that utilises data
+        :param input:
+        :param show_totals:
+        :return:
+        '''
+        print('For version', input["version"],'between', input["start_date"], 'and', input["end_date"],'the following members of the team have logged their time against tickets ',input["tickets_considered"],':')
+        print('by considering columns:', input["where"],
+              ', generated at', input["timestamp_this_was_created"], ":")
 
+        output_filename = 'time_tracking_for_version_'+str(input["version"])+"_for_week_commencing_on_"+str(input["start_date"]).replace('/','_')+"_created_at_"+str(input["timestamp_this_was_created"])+".csv"
+
+        with open(output_filename,'w') as csv_file:
+            fieldnames = ['week_commencing', 'member', 'total_hours_booked', 'version','development_hours','support_hours']
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+            writer.writeheader()
+
+            for member in input["members"].keys():
+                print(member)
+                total_hours_per_member = 0
+                for ticket in input["members"][member].keys():
+                    output_line = str(ticket)
+                    temp_hours_for_this_ticket = input["members"][member][ticket]['total_hours_booked']
+
+                    # if show_totals is True:
+                    #     output_line += " {" + str(round(temp_hours_for_this_ticket, 2)) + " hours}"
+                    # print("\t", output_line)
+                    total_hours_per_member += temp_hours_for_this_ticket
+
+                writer.writerow({'week_commencing': input["start_date"],
+                                 'member': member,
+                                 'total_hours_booked': total_hours_per_member,
+                                 'version': str(input["version"]),
+                                 'development_hours': 0,
+                                 'support_hours': 0
+
+                                 })
+
+
+
+        total_hours_booked = 0
+        for member in input["members"].keys():
+            print(member)
+            for ticket in input["members"][member].keys():
+                output_line=str(ticket)
+                temp_hours_for_this_ticket = input["members"][member][ticket]['total_hours_booked']
+                total_hours_booked += temp_hours_for_this_ticket
+                if show_totals is True:
+                    output_line += " {"+str(round(temp_hours_for_this_ticket,2))+" hours}"
+                print("\t",output_line)
+
+
+        if show_totals is True:
+            print('Total:',round(total_hours_booked,2),'hours (=',round(total_hours_booked/8,2),'days, 8hr = 1day)')
+
+        print("")
+
+    def get_time_tracking_of_a_ticket_per_user(self, ticket: str):
+        '''
+        on jira's data model, each author object corresponds to a time booking, and the the field "started"
+        represents when the time was spent.
+        Eg. The expectation is that a user should book time for a specific week and on jira dialog the box 'Date Started' should point to the appropriate date of the week
+
+        :param ticket:
+        :return:
+        '''
         time_tracking = {"timestamp_this_was_created":self.get_now_as_a_string(),
                          'comments':'the values represent time booked in seconds',
                             "ticket": ticket,

@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import csv
 import json
 import requests
 
@@ -222,3 +223,33 @@ class CircleCI_Fetcher():
             efficiency = input["projects"][job]["calculated"]["efficiency"]
             print("\t", circleCI_project, ', total deployments(i.e., CircleCI jobs) to production (i.e., sandbox):', counter_of_jobs, "(",
                   efficiency, "% successful)")
+
+    def create_reporting_file_for_a_month(self, input: dict, month_selector:int):
+        start_date_as_str = input["start_date_as_str"]
+        end_date_as_str = input["end_date_as_str"]
+        print('DevOps Quality assessment (via CircleCI) between', start_date_as_str, 'and', end_date_as_str,
+              ', generated at', input["timestamp_this_was_created"], ":")
+
+        output_filename = 'DevOps_for_month_'+str(month_selector)+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
+
+        headers = ['week_commencing','component','total_deployments', 'successful_deployments','target_environment']
+
+        with open(output_filename,'w') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=headers)
+            writer.writeheader()
+
+
+            for job in input["projects"].keys():
+                circleCI_project = job
+                counter_of_jobs = input["projects"][job]["calculated"]["total_number_of_deployments"]
+                efficiency = input["projects"][job]["calculated"]["efficiency"]
+
+
+                writer.writerow({'week_commencing': input["start_date_as_str"],
+                                 'component': job,
+                                 'total_deployments': counter_of_jobs,
+                                 'successful_deployments': input["projects"][job]["calculated"]["number_of_successful_deployments"],
+                                 'target_environment': 'sandbox',
+
+
+                                 })

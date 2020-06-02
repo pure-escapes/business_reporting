@@ -102,7 +102,7 @@ class Test_JIRAFetcher(unittest.TestCase):
     def test_hours_booked_against_tickets_in_the_main_board_for_a_specific_week(self):
         project_name = 'OWA'
         target_versions = ["1.0.0","1.1.0", "1.2.0"]
-        start_date = datetime.datetime(2020, 5, 1)
+        start_date = datetime.datetime(2020, 5, 25)
         end_date = datetime.datetime(2020, 5, 31)
 
         for version in target_versions:
@@ -114,6 +114,19 @@ class Test_JIRAFetcher(unittest.TestCase):
             self.__j1.show_message_for_logged_work(report_object, True)
         #todo: this approach does not check if on a day a user booked 40d!!!! (but also possibly this might not be stored on jira's data model)
 
+    def test_create_time_tracking(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 5, 25)
+        end_date = datetime.datetime(2020, 5, 31)
+
+        for version in target_versions:
+            report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name,
+                                                                                 version)
+            self.__j1.create_data_as_csv_for_logged_work_for(report_object, True)
+
+
+
     def test_get_which_tickets_had_pairing_and_collaboration_in_the_main_board_for_a_specific_week(self):
         #identify the ticket numbers, where the main assignee and another member had booked time
         pass
@@ -122,16 +135,18 @@ class Test_JIRAFetcher(unittest.TestCase):
         pass
 
     def test_time_tracking_per_user_per_stack(self):
-        output = self.__j1.get_time_tracking_of_a_ticket_per_user('OWA-1204')
+
+        #shared ticket = 1204 & shared epic 1625
+        output = self.__j1.get_time_tracking_of_a_ticket_per_user('OWA-1625')
 
         print(json.dumps(output, sort_keys=True, indent=4, separators=(",", ": ")))
 
 
 
-# todo find how much time has been booked in a period
 # todo find any tickets without epics (in backlog & kanban board)
 # todo do quality analysis of the kanban board
 # todo calculate how to re-assign the work, so as to finish earlier, based on the availability of developers
-# todo estimate lead time
-# todo estimate WIP
+# todo estimate lead time (for a ticket, for  particular version)
+# todo estimate WIP (for a ticket to flow through the board)
 # todo check tickets in the backlog (if the important information is missing; epic, version, story points, original estimation, etc)
+# todo how many tickets finished in a week
