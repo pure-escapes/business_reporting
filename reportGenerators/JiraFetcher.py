@@ -455,6 +455,87 @@ class JIRA_Fetcher:
 
         return output
 
+    def get_a_list_of_DONE_tickets_within_a_period(self,start_date: datetime, end_date: datetime, project_name: str, versions: list):
+        '''
+
+        alternatively, the JQL could had been something like: project = XYZ AND issuetype = bug AND resolved >= 2015-08-01 AND resolved <= 2016-09-15
+
+        :param start_date:
+        :param end_date:
+        :param project_name:
+        :param versions: list of strings with the versions e.g., ['1.2.0', '1.3.4', ....]
+        :return:
+        '''
+
+
+        start_date_as_str = start_date.strftime("%Y/%m/%d")
+        end_date_as_str = end_date.strftime("%Y/%m/%d")
+        output = {"timestamp_this_was_created":self.get_now_as_a_string(),
+                  "versions_considered": ", ".join(map(lambda x: '"'+str(x)+'"', versions)),
+                  "where":self.__where['full_board'],
+                  "start_date":start_date.strftime("%d/%m/%Y"),
+                  "end_date":end_date.strftime("%d/%m/%Y"),
+                  "types_of_tickets_considered":self.__types_of_tickets['stories_and_bugs'],
+                  "data":[]
+                  }
+        template_of_JQL_command = 'issuetype in ({})  AND project = "{}" AND fixVersion  in ({})  AND status changed to done DURING ("{} 00:00","{}")'
+        JQL_command = template_of_JQL_command.format(output["types_of_tickets_considered"],
+                                                     project_name,
+                                                     output["versions_considered"],
+                                                     start_date_as_str,
+                                                     end_date_as_str)
+
+
+
+        selected_tickets = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+
+
+
+
+
+        for issue in selected_tickets:
+            entry = {}
+
+            entry["ticket_name"] = str(issue.key)
+            entry["version"] = str(issue.fields.fixVersions[0])
+            entry["when_was_created"] = str(issue.fields.created)
+            entry["when_was_done"] = str(issue.fields.resolutiondate)
+            entry['issue_type'] = str(issue.fields.issuetype).lower()
+            entry['item_type'] = str(issue.fields.customfield_10037)
+
+
+
+            if issue.fields.customfield_10026 is not None:
+                points = float(issue.fields.customfield_10026)
+            else:
+                points = 0
+
+            if entry['issue_type'] == 'story':
+
+                entry["points"] = points
+            else:
+                entry["points"] = 0
+
+
+
+            output['data'].append(entry)
+
+        return output
+
+    def create_data_as_csv_for_DONE_tickets(self, input: dict, show_totals=False):
+
+        output_filename = 'Agile_velocity_snapshot_of_DONE_tickets_from_'+input["start_date"].replace('/','_')+"_to_"+input["end_date"].replace('/','_')+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
+
+        with open(output_filename,'w') as csv_file:
+            headers = list(input["data"][0].keys())
+            # headers = ['ticket_name', 'version', 'when_was_created', 'when_was_done', 'points']
+            writer = csv.DictWriter(csv_file, fieldnames=headers)
+
+            writer.writeheader()
+
+            for data_item in input["data"]:
+                writer.writerow(data_item)
+
 
     def show_message_for_logged_work(self, input: dict, show_totals=False):
         print('For version', input["version"],'between', input["start_date"], 'and', input["end_date"],'the following members of the team have logged their time against tickets ',input["tickets_considered"],':')
@@ -490,7 +571,7 @@ class JIRA_Fetcher:
         print('by considering columns:', input["where"],
               ', generated at', input["timestamp_this_was_created"], ":")
 
-        output_filename = 'time_tracking_for_version_'+str(input["version"])+"_for_week_commencing_on_"+str(input["start_date"]).replace('/','_')+"_created_at_"+str(input["timestamp_this_was_created"])+".csv"
+        output_filename = 'time_tracking_for_version_'+str(input["version"])+"_from_"+str(input["start_date"]).replace('/','_')+"_to_"+str(input["end_date"]).replace('/','_')+"_created_at_"+str(input["timestamp_this_was_created"])+".csv"
 
         with open(output_filename,'w') as csv_file:
             fieldnames = ['week_commencing', 'member', 'total_hours_booked', 'version','development_hours','support_hours']

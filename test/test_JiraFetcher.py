@@ -117,7 +117,7 @@ class Test_JIRAFetcher(unittest.TestCase):
     def test_create_time_tracking(self):
         project_name = 'OWA'
         target_versions = ["1.0.0", "1.1.0", "1.2.0"]
-        start_date = datetime.datetime(2020, 5, 25)
+        start_date = datetime.datetime(2020, 5, 1)
         end_date = datetime.datetime(2020, 5, 31)
 
         for version in target_versions:
@@ -140,6 +140,17 @@ class Test_JIRAFetcher(unittest.TestCase):
         output = self.__j1.get_time_tracking_of_a_ticket_per_user('OWA-1625')
 
         print(json.dumps(output, sort_keys=True, indent=4, separators=(",", ": ")))
+
+    def test_creating_agile_velocity_snapshot_for_business_reporting(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 5, 1)
+        end_date = datetime.datetime(2020, 5, 31)
+
+
+        report_object = self.__j1.get_a_list_of_DONE_tickets_within_a_period(start_date, end_date, project_name, target_versions)
+        self.__j1.create_data_as_csv_for_DONE_tickets(report_object, True)
+
 
 
 
