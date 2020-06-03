@@ -152,7 +152,7 @@ class Test_JIRAFetcher(unittest.TestCase):
         self.__j1.create_data_as_csv_for_DONE_tickets(report_object, True)
 
 
-
+#todo filters: https://supermetrics.com/blog/google-data-studio-advanced-tips
 
 # todo find any tickets without epics (in backlog & kanban board)
 # todo do quality analysis of the kanban board
