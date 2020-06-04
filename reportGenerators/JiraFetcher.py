@@ -359,7 +359,6 @@ class JIRA_Fetcher:
         base_url = "https://pureescapes.atlassian.net"
         url = base_url+"/rest/api/3/worklog/list"
 
-        # basic_auth = (os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER")
 
         auth = HTTPBasicAuth(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER"))
 
@@ -456,6 +455,49 @@ class JIRA_Fetcher:
 
         return output
 
+    def calculate_the_cycle_time_of_an_issue_from_its_activity(self, issue_name: str):
+        '''
+        go through the history of a ticket, find the time it was entered in column 'In Development' from the column 'Selected for Development'
+        and then calculate the cycle time until the time it was Done
+        :param issue_name:
+        :return:
+        '''
+
+        base_url = "https://pureescapes.atlassian.net"
+        url = base_url + "/rest/api/3/issue/"+issue_name+"/changelog"
+
+        auth = HTTPBasicAuth(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER"))
+
+        headers = {
+            "Accept": "application/json"
+        }
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=headers,
+            auth=auth
+        )
+        structured_output = json.loads(response.text)
+
+        #find the
+        index_of_of_event_that_development_started = 0
+        index = 0
+        for event in structured_output["values"]:
+            if "toString" in event['items'][0]:
+                if event['items'][0]["toString"] == "Selected for Development":
+                    index_of_of_event_that_development_started = index
+
+            index += 1
+
+        datestamp_the_ticket_was_selected_for_development_as_str = structured_output["values"][index_of_of_event_that_development_started]["created"]
+
+        datestamp_the_ticket_was_selected_for_development_as_object = dateutil.parser.parse(datestamp_the_ticket_was_selected_for_development_as_str)
+
+        # print(json.dumps(structured_output, sort_keys=True, indent=4, separators=(",", ": ")))
+
+        return datestamp_the_ticket_was_selected_for_development_as_object
+
     def get_a_list_of_DONE_tickets_within_a_period(self,start_date: datetime, end_date: datetime, project_name: str, versions: list):
         '''
 
@@ -497,15 +539,6 @@ class JIRA_Fetcher:
         for issue in selected_tickets:
             entry = {}
 
-
-            # dateutil.parser.parse(d1)
-            # Out[7]: datetime.datetime(2020, 4, 17, 12, 37, 39, 288000, tzinfo=tzoffset(None, 3600))
-            # D1 = dateutil.parser.parse(d1)
-            # d2 = '2020-05-01T10:42:58.847+0100'
-            # D2 = dateutil.parser.parse(d2)
-            # D2 - D1
-            # Out[11]: datetime.timedelta(13, 79519, 559000)
-
             entry["ticket_name"] = str(issue.key)
             entry["version"] = str(issue.fields.fixVersions[0])
 
@@ -521,8 +554,11 @@ class JIRA_Fetcher:
             entry['item_type'] = str(issue.fields.customfield_10037)
 
             lead_time_in_days = (finished_datestamp_of_issues_as_object-creation_of_issue_as_object).days
-            entry['lead_time'] = lead_time_in_days
+            entry['lead_time(days)'] = lead_time_in_days
 
+            datestamp_that_the_task_started = self.calculate_the_cycle_time_of_an_issue_from_its_activity(entry["ticket_name"])
+            cycle_time = (finished_datestamp_of_issues_as_object-datestamp_that_the_task_started).days
+            entry['cycle_time(days)'] = cycle_time
 
 
             if issue.fields.customfield_10026 is not None:

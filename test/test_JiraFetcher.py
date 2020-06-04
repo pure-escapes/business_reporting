@@ -152,6 +152,16 @@ class Test_JIRAFetcher(unittest.TestCase):
         self.__j1.create_data_as_csv_for_DONE_tickets(report_object, True)
 
 
+    def test_finding_the_date_a_ticket_started_being_developed(self):
+
+        test_ticket = 'OWA-1564'
+        expected_time = '2020/05/22'
+        temp = self.__j1.calculate_the_cycle_time_of_an_issue_from_its_activity(test_ticket)
+        found_time = temp.strftime('%Y/%m/%d')
+
+        self.assertEqual(expected_time,found_time)
+
+
 #todo filters: https://supermetrics.com/blog/google-data-studio-advanced-tips
 
 # todo find any tickets without epics (in backlog & kanban board)
