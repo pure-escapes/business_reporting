@@ -15,6 +15,7 @@ import requests
 import json
 import os
 import datetime
+import dateutil.parser
 
 from typing import Any, Dict, Generator, List, Tuple, Sequence
 
@@ -496,12 +497,31 @@ class JIRA_Fetcher:
         for issue in selected_tickets:
             entry = {}
 
+
+            # dateutil.parser.parse(d1)
+            # Out[7]: datetime.datetime(2020, 4, 17, 12, 37, 39, 288000, tzinfo=tzoffset(None, 3600))
+            # D1 = dateutil.parser.parse(d1)
+            # d2 = '2020-05-01T10:42:58.847+0100'
+            # D2 = dateutil.parser.parse(d2)
+            # D2 - D1
+            # Out[11]: datetime.timedelta(13, 79519, 559000)
+
             entry["ticket_name"] = str(issue.key)
             entry["version"] = str(issue.fields.fixVersions[0])
-            entry["when_was_created"] = str(issue.fields.created)
-            entry["when_was_done"] = str(issue.fields.resolutiondate)
+
+            creation_of_issue_as_str = str(issue.fields.created)
+            entry["when_was_created"] = creation_of_issue_as_str
+            creation_of_issue_as_object = dateutil.parser.parse(creation_of_issue_as_str)
+
+            finished_datestamp_of_issues_as_str = str(issue.fields.resolutiondate)
+            entry["when_was_done"] = finished_datestamp_of_issues_as_str
+            finished_datestamp_of_issues_as_object = dateutil.parser.parse(finished_datestamp_of_issues_as_str)
+
             entry['issue_type'] = str(issue.fields.issuetype).lower()
             entry['item_type'] = str(issue.fields.customfield_10037)
+
+            lead_time_in_days = (finished_datestamp_of_issues_as_object-creation_of_issue_as_object).days
+            entry['lead_time'] = lead_time_in_days
 
 
 
