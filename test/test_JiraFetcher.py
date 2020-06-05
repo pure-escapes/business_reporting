@@ -103,7 +103,7 @@ class Test_JIRAFetcher(unittest.TestCase):
         project_name = 'OWA'
         target_versions = ["1.0.0","1.1.0", "1.2.0"]
         start_date = datetime.datetime(2020, 5, 25)
-        end_date = datetime.datetime(2020, 5, 31)
+        end_date = datetime.datetime(2020, 5, 31, 23, 59, 59)
 
         for version in target_versions:
             report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name, version)
@@ -118,12 +118,28 @@ class Test_JIRAFetcher(unittest.TestCase):
         project_name = 'OWA'
         target_versions = ["1.0.0", "1.1.0", "1.2.0"]
         start_date = datetime.datetime(2020, 5, 1)
-        end_date = datetime.datetime(2020, 5, 31)
+        end_date = datetime.datetime(2020, 5, 31, 23, 59, 59)
 
         for version in target_versions:
             report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name,
                                                                                  version)
             self.__j1.create_data_as_csv_for_logged_work_for(report_object, True)
+
+    def test_that_the_work_of_a_period_is_account_for_a_specific_period(self):
+        '''
+        when a user booked time against a ticket, even at a later date.... all worklogs were included in the calculations
+        the correct behaviour is that if a user booked 2 hours in a specific week (and a few more next week), only those 2 hours should be counted (not the others)
+        :return:
+        '''
+        target_ticket = 'OWA-1612'
+        start_date = datetime.datetime(2020, 5, 25)
+        end_date = datetime.datetime(2020, 5, 31, 23, 59, 59)
+
+        expected_hours = 2
+        temp = self.__j1.get_time_tracking_of_a_ticket_per_user_for_a_specific_period(target_ticket, start_date, end_date)
+        found_hours = int(temp['members']['Christos, Pure Escapes']/3600)
+
+        self.assertEqual(expected_hours, found_hours)
 
 
 
@@ -137,7 +153,7 @@ class Test_JIRAFetcher(unittest.TestCase):
     def test_time_tracking_per_user_per_stack(self):
 
         #shared ticket = 1204 & shared epic 1625
-        output = self.__j1.get_time_tracking_of_a_ticket_per_user('OWA-1625')
+        output = self.__j1.get_time_tracking_of_a_ticket_per_user_for_a_specific_period('OWA-1625')
 
         print(json.dumps(output, sort_keys=True, indent=4, separators=(",", ": ")))
 

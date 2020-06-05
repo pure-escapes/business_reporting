@@ -23,6 +23,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 import json
 import csv
+import pytz
+
+
 
 
 
@@ -37,6 +40,9 @@ class JIRA_Fetcher:
         :param project_name: as it appears on jira e.g., "OWA"
         :param version: as it appears on jira e.g., "1.1.0"
         '''
+        self.utc = pytz.UTC
+
+
         options = {"server": "https://pureescapes.atlassian.net"}
         # print(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_PASSWORD"))
         # jira = JIRA(options)
@@ -383,6 +389,17 @@ class JIRA_Fetcher:
 
         print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
 
+    def get_list_of_all_members_that_participated_in_the_work_of_selected_tickets(self, selected_tickets, start_date, end_date):
+        all_members_of_the_team = []
+        for issue in selected_tickets:
+            ticket_name = str(issue.key)
+            break_down_of_ticket_per_member = self.get_time_tracking_of_a_ticket_per_user_for_a_specific_period(ticket_name, start_date, end_date)
+
+            for member in break_down_of_ticket_per_member['members'].keys():
+                if member not in all_members_of_the_team:
+                    all_members_of_the_team.append(member)
+
+        return all_members_of_the_team
 
 
     def get_breakdown_of_tickets_with_hours_booked(self,start_date: datetime, end_date: datetime, project_name: str, version: str):
@@ -417,14 +434,8 @@ class JIRA_Fetcher:
         selected_tickets = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
 
 
-        all_members_of_the_team = []
-        for issue in selected_tickets:
-            ticket_name = str(issue.key)
-            break_down_of_ticket_per_member = self.get_time_tracking_of_a_ticket_per_user(ticket_name)
+        all_members_of_the_team = self.get_list_of_all_members_that_participated_in_the_work_of_selected_tickets(selected_tickets, start_date, end_date)
 
-            for member in break_down_of_ticket_per_member['members'].keys():
-                if member not in all_members_of_the_team:
-                    all_members_of_the_team.append(member)
 
         for member in all_members_of_the_team:
             output["members"].update({member: {}})
@@ -434,12 +445,12 @@ class JIRA_Fetcher:
 
 
             ticket_name = str(issue.key)
-            status = str(issue.fields.status)
-            member_of_team = str(issue.fields.assignee)
-            jira_issue_type = str(issue.fields.issuetype).lower()
-            item_type = str(issue.fields.customfield_10037).lower()
+            # status = str(issue.fields.status)
+            # member_of_team = str(issue.fields.assignee)
+            # jira_issue_type = str(issue.fields.issuetype).lower()
+            # item_type = str(issue.fields.customfield_10037).lower()
 
-            break_down_of_ticket_per_member = self.get_time_tracking_of_a_ticket_per_user(ticket_name)
+            break_down_of_ticket_per_member = self.get_time_tracking_of_a_ticket_per_user_for_a_specific_period(ticket_name, start_date, end_date)
 
             for member in break_down_of_ticket_per_member['members'].keys():
                 hours_booked_on_this_ticket = 0
@@ -675,7 +686,7 @@ class JIRA_Fetcher:
 
         print("")
 
-    def get_time_tracking_of_a_ticket_per_user(self, ticket: str):
+    def get_time_tracking_of_a_ticket_per_user_for_a_specific_period(self, ticket: str, start_date: datetime, end_date: datetime):
         '''
         on jira's data model, each author object corresponds to a time booking, and the the field "started"
         represents when the time was spent.
@@ -706,16 +717,22 @@ class JIRA_Fetcher:
             auth=auth
         )
 
+        # challenge.datetime_start = self.utc.localize(challenge.datetime_start)
+        # challenge.datetime_end = self.utc.localize(challenge.datetime_end)
+
         structured_output = json.loads(response.text)
 
         for worklog_item in structured_output['worklogs']:
             member_of_team = worklog_item['author']['displayName']
             booked_time_in_seconds = worklog_item['timeSpentSeconds']
 
-            if member_of_team not in time_tracking['members'].keys():
-                time_tracking['members'][member_of_team] = booked_time_in_seconds
-            else:
-                time_tracking['members'][member_of_team] += booked_time_in_seconds
+            # time_the_work_started_as_str=worklog_item['started']
+            date_of_worklog_item = dateutil.parser.parse(worklog_item['started'])
+            if self.utc.localize(start_date) <= date_of_worklog_item <= self.utc.localize(end_date):
+                if member_of_team not in time_tracking['members'].keys():
+                    time_tracking['members'][member_of_team] = booked_time_in_seconds
+                else:
+                    time_tracking['members'][member_of_team] += booked_time_in_seconds
 
 
             # print (member_of_team, booked_time_in_seconds)
