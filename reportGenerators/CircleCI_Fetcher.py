@@ -224,13 +224,21 @@ class CircleCI_Fetcher():
             print("\t", circleCI_project, ', total deployments(i.e., CircleCI jobs) to production (i.e., sandbox):', counter_of_jobs, "(",
                   efficiency, "% successful)")
 
-    def create_reporting_file_for_a_month(self, input: dict, month_selector:int):
+    def create_reporting_file_for_a_period(self, input: dict):
+        '''
+        the period is inluced in the input file, with the fields:
+            start_date_as_str = input["start_date_as_str"]
+            end_date_as_str = input["end_date_as_str"]
+        :param input: all data
+
+        :return:
+        '''
         start_date_as_str = input["start_date_as_str"]
         end_date_as_str = input["end_date_as_str"]
         print('DevOps Quality assessment (via CircleCI) between', start_date_as_str, 'and', end_date_as_str,
               ', generated at', input["timestamp_this_was_created"], ":")
 
-        output_filename = 'DevOps_for_month_'+str(month_selector)+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
+        output_filename = 'DevOps_snapshot_from_'+start_date_as_str.replace('/','_')+'_to_'+end_date_as_str.replace('/','_')+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
 
         headers = ['week_commencing','component','total_deployments', 'successful_deployments','target_environment']
 

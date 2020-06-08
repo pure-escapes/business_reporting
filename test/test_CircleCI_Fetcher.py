@@ -48,8 +48,8 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
         self.__c1.get_deployments_of_a_branch_within_a_specific_range_of_dates(config)
 
     def test_check_the_most_important_branches_between_to_dates(self):
-        start_date_as_str = "18/5/2020"
-        end_date_as_str = "22/5/2020"
+        start_date_as_str = "1/6/2020"
+        end_date_as_str = "5/6/2020"
 
         config = self.__c1.get_basic_configuration_file()
         config["start_date_as_str"] = start_date_as_str
@@ -57,6 +57,7 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
         report_object = self.__c1.check_several_branches(config)
 
         self.__c1.show(report_object)
+        self.__c1.create_reporting_file_for_a_period(report_object)
 
     def test_check_the_most_important_branches_for_a_particular_month(self):
         selected_month = 5
@@ -90,7 +91,7 @@ class Test_CircleCI_Fetcher(unittest.TestCase):
 
         report_object = self.__c1.check_several_branches(config)
 
-        self.__c1.create_reporting_file_for_a_month(report_object, selected_month)
+        self.__c1.create_reporting_file_for_a_period(report_object)
 
 
     def test_progress_over_particular_months(self):
