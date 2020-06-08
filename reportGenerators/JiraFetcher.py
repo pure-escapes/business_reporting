@@ -421,8 +421,8 @@ class JIRA_Fetcher:
         output = {"timestamp_this_was_created":self.get_now_as_a_string(),
                   "version":str(version),
                   "where":self.__where['full_board'],
-                  "start_date":start_date.strftime("%d/%m/%Y"),
-                  "end_date":end_date.strftime("%d/%m/%Y"),
+                  "start_date":start_date.strftime("%Y/%m/%d"), #       .strftime("%d/%m/%Y")
+                  "end_date":end_date.strftime("%Y/%m/%d"),
                   "members":{},
                   "tickets_considered":self.__types_of_tickets['all_possible']
                   }
@@ -527,8 +527,8 @@ class JIRA_Fetcher:
         output = {"timestamp_this_was_created":self.get_now_as_a_string(),
                   "versions_considered": ", ".join(map(lambda x: '"'+str(x)+'"', versions)),
                   "where":self.__where['full_board'],
-                  "start_date":start_date.strftime("%d/%m/%Y"),
-                  "end_date":end_date.strftime("%d/%m/%Y"),
+                  "start_date":start_date.strftime("%Y/%m/%d"),
+                  "end_date":end_date.strftime("%Y/%m/%d"),
                   "types_of_tickets_considered":self.__types_of_tickets['stories_and_bugs'],
                   "data":[]
                   }
