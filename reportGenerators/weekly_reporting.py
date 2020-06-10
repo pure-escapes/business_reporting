@@ -3,6 +3,7 @@ import datetime
 
 from reportGenerators.JiraFetcher import JIRA_Fetcher
 from reportGenerators.CircleCI_Fetcher import CircleCI_Fetcher
+from reportGenerators.Sonarcloud_Fetcher import generate_a_report_file_for_code_coverage_per_repo, generate_coverage_for_all_repos
 
 
 project_name = 'OWA'
@@ -28,10 +29,32 @@ def generate_all_reporting_data_for_specific_week(target_versions: list, start_d
     c4.show(report_object)
     c4.create_reporting_file_for_a_period(report_object)
 
+    all_repos = {
+        # 'pure-escapes_booking-manager-service': 0,
+        'pure-escapes_pdf-service': 0,
+        'pure-escapes_events-service': 0,
+        'pure-escapes_webapp-admin': 0,
+        'pure-escapes_webapp-admin-api': 0,
+        'pure-escapes_webapp-backend': 0,
+        'pure-escapes_webapp-client-api': 0,
+        'pure-escapes_webapp-frontend': 0
+    }
+    report_object = generate_coverage_for_all_repos(all_repos)
+    generate_a_report_file_for_code_coverage_per_repo(report_object, start_date)
+
+
+
 def run_week_23():
     target_versions = ["1.0.0", "1.1.0", "1.2.0"]
     start_date = datetime.datetime(2020, 6, 1)
     end_date = datetime.datetime(2020, 6, 5, 23, 59, 59)
+    generate_all_reporting_data_for_specific_week(target_versions, start_date, end_date)
+
+
+def run_week_24():
+    target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+    start_date = datetime.datetime(2020, 6, 8)
+    end_date = datetime.datetime(2020, 6, 12, 23, 59, 59)
     generate_all_reporting_data_for_specific_week(target_versions, start_date, end_date)
 
 if __name__ == "__main__":

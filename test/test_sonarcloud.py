@@ -23,7 +23,7 @@ import json, requests, pprint
 from requests.auth import HTTPBasicAuth
 
 
-from reportGenerators.Sonarcloud_Fetcher import get_coverage_for_component
+from reportGenerators.Sonarcloud_Fetcher import get_coverage_for_component, generate_coverage_for_all_repos, generate_a_report_file_for_code_coverage_per_repo
 
 class Test_Sonarcloud(unittest.TestCase):
 
@@ -31,11 +31,10 @@ class Test_Sonarcloud(unittest.TestCase):
         pass
 
     def test_1(self):
-        #PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN
 
         url = 'https://sonarcloud.io/api/measures/component_tree'
         # query = {'component': 'keyJabref4.2', 'metricKeys': 'sqale_index', 'ps': 100, 'p': 1}
-        query = {'user': os.environ['PE_BUSINESS_REPORT_TOKEN'],
+        query = {'user': os.environ['PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN'],
                  'component': 'pure-escapes_pdf-service',
                  'metricKeys': 'sqale_index',
                  'ps': 100,
@@ -45,11 +44,11 @@ class Test_Sonarcloud(unittest.TestCase):
 
         print(metrics_dict)
 
-
+        #an alternative way....
 
         url = url + '?component='+query['component']+"&metricKeys="+query['metricKeys']
         print('URL2:', url)
-        myToken = os.environ['PE_BUSINESS_REPORT_TOKEN']
+        myToken = os.environ['PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN']
 
         session = requests.Session()
         session.auth = myToken, ''
@@ -71,7 +70,7 @@ class Test_Sonarcloud(unittest.TestCase):
                  'metricKeys': 'sqale_index',
                  'ps': 100,
                  'p': 1}
-        r = requests.get(url, params=query, auth=(os.environ['PE_BUSINESS_REPORT_TOKEN'], ''))
+        r = requests.get(url, params=query, auth=(os.environ['PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN'], ''))
         metrics_dict = r.json()
 
         formatted_output = json.dumps(metrics_dict, indent=2)
@@ -84,7 +83,7 @@ class Test_Sonarcloud(unittest.TestCase):
                  'metricKeys': 'sqale_index',
                  'ps': 100,
                  'p': 1}
-        r = requests.get(url, params=query, auth=(os.environ['PE_BUSINESS_REPORT_TOKEN'], ''))
+        r = requests.get(url, params=query, auth=(os.environ['PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN'], ''))
         metrics_dict = r.json()
 
         formatted_output = json.dumps(metrics_dict, indent=2)
@@ -99,7 +98,7 @@ class Test_Sonarcloud(unittest.TestCase):
                  'metricKeys': "coverage",
                  'ps': 100,
                  'p': 1}
-        r = requests.get(url, params=query, auth=(os.environ['PE_BUSINESS_REPORT_TOKEN'], ''))
+        r = requests.get(url, params=query, auth=(os.environ['PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN'], ''))
         metrics_dict = r.json()
 
         formatted_output = json.dumps(metrics_dict, indent=2)
@@ -134,3 +133,23 @@ class Test_Sonarcloud(unittest.TestCase):
             all_repos[repo] = get_coverage_for_component(repo)
 
         print(all_repos)
+
+
+    def test_generate_report_file(self):
+        start = datetime.datetime(2020, 6, 8, 0, 0, 1)
+
+
+        all_repos = {
+            # 'pure-escapes_booking-manager-service': 0,
+                     'pure-escapes_pdf-service': 0,
+                     'pure-escapes_events-service': 0,
+                     'pure-escapes_webapp-admin': 0,
+                     'pure-escapes_webapp-admin-api': 0,
+                     'pure-escapes_webapp-backend': 0,
+                     'pure-escapes_webapp-client-api': 0,
+                     'pure-escapes_webapp-frontend': 0
+                     }
+        report_object = generate_coverage_for_all_repos(all_repos)
+
+        generate_a_report_file_for_code_coverage_per_repo(report_object, start)
+

@@ -20,6 +20,18 @@ import os
 import json, requests, pprint
 from requests.auth import HTTPBasicAuth
 
+import datetime
+import dateutil.parser
+import copy
+import csv
+
+from datetime import timedelta
+
+
+def get_now_as_a_string():
+    now_time_object = datetime.datetime.now()
+    return now_time_object.strftime("%Y%m%d_%H%M")
+
 def get_coverage_for_component(component_name: str):
     '''
 
@@ -33,7 +45,7 @@ def get_coverage_for_component(component_name: str):
              'metricKeys': "coverage",
              'ps': 100,
              'p': 1}
-    r = requests.get(url, params=query, auth=(os.environ['PE_BUSINESS_REPORT_TOKEN'], ''))
+    r = requests.get(url, params=query, auth=(os.environ['PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN'], ''))
     metrics_dict = r.json()
 
     formatted_output = json.dumps(metrics_dict, indent=2)
@@ -45,4 +57,38 @@ def get_coverage_for_component(component_name: str):
 
     print("coverage for "+component_name+":", str(coverage_value), "%")
     return coverage_value
+
+
+def generate_coverage_for_all_repos(input: dict ):
+    output =  { 'timestamp_this_was_created': get_now_as_a_string(),
+                'coverage_per_repo': copy.deepcopy(input)
+                }
+
+    for repo in output['coverage_per_repo'].keys():
+        output['coverage_per_repo'][repo] = get_coverage_for_component(repo)
+
+
+    return output
+
+
+
+def generate_a_report_file_for_code_coverage_per_repo(input: dict, week_start: datetime):
+    time_for_five_days_later = week_start + timedelta(days=4)
+    start_as_str = week_start.strftime("%d_%m_%Y")
+    end_as_str = time_for_five_days_later.strftime("%d_%m_%Y")
+    output_filename = "Code_coverage_report_per_repository_from_"+start_as_str+"_to_"+end_as_str+"_generated_at_"+input['timestamp_this_was_created']+".csv"
+
+    with open(output_filename, 'w') as csv_file:
+
+        fieldnames = ['week_commencing', 'repository', 'coverage(%)']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        writer.writeheader()
+
+        for repo_name, coverage in input['coverage_per_repo'].items():
+
+            writer.writerow({'week_commencing': week_start.strftime("%Y/%m/%d"),
+             'repository': repo_name.replace('pure-escapes_',''),
+             'coverage(%)': coverage})
+
 
