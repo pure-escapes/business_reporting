@@ -57,6 +57,16 @@ create environment variables
 curl -v $PE_JIRA_URI --user $PE_JIRA_USERNAME:$PE_JIRA_BI_LISTENER
 ```
 
+# Sonarcloud
+
+## preparation
+1. get a token from the site, from personal tokens, add to your env variables (e.g., as `PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN`)
+1. check that it works 
+```bash
+curl -u $PE_SONAR_TOKEN_FOR_BUSINESS_REPORT_TOKEN "https://sonarcloud.io/api/measures/component_tree?component=pure-escapes_pdf-service&metricKeys=sqale_index&format=json"
+```
+
+
 # CircleCI:
 
 ## preparation

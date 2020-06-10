@@ -22,6 +22,9 @@ import os
 import json, requests, pprint
 from requests.auth import HTTPBasicAuth
 
+
+from reportGenerators.Sonarcloud_Fetcher import get_coverage_for_component
+
 class Test_Sonarcloud(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -107,3 +110,27 @@ class Test_Sonarcloud(unittest.TestCase):
             coverage_value = metrics_dict["baseComponent"]["measures"][0]["value"]
 
         print("coverage found:", coverage_value)
+
+    def test_a_wrapper_function(self):
+        target_repo = 'pure-escapes_pdf-service'
+        # target_repo = 'pure-escapes_events-service'
+        get_coverage_for_component(target_repo)
+
+    def test_all_repos(self):
+        #todo limitation: if a project does not have any coverage, the comment will fail (because the 'metrics' object from sonarcloud will not have any data
+
+        all_repos = {
+            # 'pure-escapes_booking-manager-service': 0,
+                     'pure-escapes_pdf-service': 0,
+                     'pure-escapes_events-service': 0,
+                     'pure-escapes_webapp-admin': 0,
+                     'pure-escapes_webapp-admin-api': 0,
+                     'pure-escapes_webapp-backend': 0,
+                     'pure-escapes_webapp-client-api': 0,
+                     'pure-escapes_webapp-frontend': 0
+                     }
+
+        for repo in all_repos.keys():
+            all_repos[repo] = get_coverage_for_component(repo)
+
+        print(all_repos)
