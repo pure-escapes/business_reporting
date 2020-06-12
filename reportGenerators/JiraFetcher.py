@@ -426,8 +426,14 @@ class JIRA_Fetcher:
                   "members":{},
                   "tickets_considered":self.__types_of_tickets['all_possible']
                   }
-        template_of_JQL_command = 'issuetype in {}  AND project = "{}" AND fixVersion = "{}"  AND status in ("Code Review", "In Development", "Preparing Tests",QA, UAT, Done) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'
-        JQL_command = template_of_JQL_command.format(output["tickets_considered"],project_name, version, start_date_as_str, end_date_as_str)
+        template_of_JQL_command = 'issuetype in {}  AND project = "{}" AND fixVersion = "{}"  AND status in ({}) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'
+        JQL_command = template_of_JQL_command.format(output["tickets_considered"],
+                                                     project_name,
+                                                     version,
+                                                     output['where'],
+                                                     start_date_as_str,
+                                                     end_date_as_str)
+
 
 
 
@@ -629,7 +635,7 @@ class JIRA_Fetcher:
 
     def create_data_as_csv_for_logged_work_for(self, input: dict, show_totals=False):
         '''
-        this is intented to be used within Google data studio or other analytics platform that utilises data
+        this is expected to be used within Google data studio or other analytics platform that utilises data
         :param input:
         :param show_totals:
         :return:

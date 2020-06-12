@@ -117,8 +117,8 @@ class Test_JIRAFetcher(unittest.TestCase):
     def test_create_time_tracking(self):
         project_name = 'OWA'
         target_versions = ["1.0.0", "1.1.0", "1.2.0"]
-        start_date = datetime.datetime(2020, 5, 1)
-        end_date = datetime.datetime(2020, 5, 31, 23, 59, 59)
+        start_date = datetime.datetime(2020, 6, 8)
+        end_date = datetime.datetime(2020, 6, 12, 23, 59, 59)
 
         for version in target_versions:
             report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name,
@@ -134,6 +134,22 @@ class Test_JIRAFetcher(unittest.TestCase):
         target_ticket = 'OWA-1612'
         start_date = datetime.datetime(2020, 5, 25)
         end_date = datetime.datetime(2020, 5, 31, 23, 59, 59)
+
+        expected_hours = 2
+        temp = self.__j1.get_time_tracking_of_a_ticket_per_user_for_a_specific_period(target_ticket, start_date, end_date)
+        found_hours = int(temp['members']['Christos, Pure Escapes']/3600)
+
+        self.assertEqual(expected_hours, found_hours)
+
+    def test_a_ticket_with_2_people_working_in_the_same_week(self):
+        '''
+        when a user booked time against a ticket, even at a later date.... all worklogs were included in the calculations
+        the correct behaviour is that if a user booked 2 hours in a specific week (and a few more next week), only those 2 hours should be counted (not the others)
+        :return:
+        '''
+        target_ticket = 'OWA-1579'
+        start_date = datetime.datetime(2020, 6, 8, 0, 0, 1)
+        end_date = datetime.datetime(2020, 6, 12, 23, 59, 59)
 
         expected_hours = 2
         temp = self.__j1.get_time_tracking_of_a_ticket_per_user_for_a_specific_period(target_ticket, start_date, end_date)
