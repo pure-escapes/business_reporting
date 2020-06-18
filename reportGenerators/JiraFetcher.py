@@ -595,6 +595,73 @@ class JIRA_Fetcher:
 
         return output
 
+    def get_a_list_of_tickets_whose_progress_has_exceeded_the_threshold_towards_completion(self,start_date: datetime, end_date: datetime, project_name: str, versions: list, threshold: float):
+        '''
+
+        alternatively, the JQL could had been something like: project = XYZ AND issuetype = bug AND resolved >= 2015-08-01 AND resolved <= 2016-09-15
+
+        :param start_date:
+        :param end_date:
+        :param project_name:
+        :param versions: list of strings with the versions e.g., ['1.2.0', '1.3.4', ....]
+        :param threshold:  if the ratio of hours booked over originally estimated hours is higher than the threshold, then the corresponding tickets will be selected
+        :return:
+        '''
+
+
+        start_date_as_str = start_date.strftime("%Y/%m/%d")
+        end_date_as_str = end_date.strftime("%Y/%m/%d")
+        output = {"timestamp_this_was_created":self.get_now_as_a_string(),
+                  "versions_considered": ", ".join(map(lambda x: '"'+str(x)+'"', versions)),
+                  "where":self.__where['board'],
+                  "start_date":start_date.strftime("%Y/%m/%d"),
+                  "end_date":end_date.strftime("%Y/%m/%d"),
+                  "types_of_tickets_considered":self.__types_of_tickets['stories_and_bugs'],
+                  "data":[]
+                  }
+        template_of_JQL_command = 'issuetype in ({})  AND project = "{}" AND fixVersion  in ({}) AND status in ({}) AND updated >= "{}" AND updated <= "{}" '
+        JQL_command = template_of_JQL_command.format(output["types_of_tickets_considered"],
+                                                     project_name,
+                                                     output["versions_considered"],
+                                                     output["where"],
+                                                     start_date_as_str,
+                                                     end_date_as_str)
+
+
+
+        selected_tickets = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+
+
+
+
+
+        for issue in selected_tickets:
+
+
+
+            currently_booked_time = issue.fields.aggregatetimespent
+            original_estimation = issue.fields.aggregatetimeestimate
+
+            if (currently_booked_time is not None) and (original_estimation is not None):
+
+                check = currently_booked_time - threshold * original_estimation
+
+                if (check > 0.0) and (original_estimation > 0.0):
+
+                    entry = {}
+
+                    entry["ticket_name"] = str(issue.key)
+                    entry['ratio_booked_over_estimated'] = currently_booked_time/original_estimation
+                    entry["version"] = str(issue.fields.fixVersions[0])
+
+                    entry['issue_type'] = str(issue.fields.issuetype).lower()
+                    entry['item_type'] = str(issue.fields.customfield_10037)
+
+
+                    output['data'].append(entry)
+
+        return output
+
     def create_data_as_csv_for_DONE_tickets(self, input: dict, show_totals=False):
 
         output_filename = 'Agile_velocity_snapshot_of_DONE_tickets_from_'+input["start_date"].replace('/','_')+"_to_"+input["end_date"].replace('/','_')+'_created_at_'+input["timestamp_this_was_created"]+'.csv'

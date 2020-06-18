@@ -193,6 +193,35 @@ class Test_JIRAFetcher(unittest.TestCase):
 
         self.assertEqual(expected_time,found_time)
 
+    def test_finding_which_jobs_are_about_to_overrun(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 6, 15)
+        end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
+        alert_threshold_after_which_the_job_needs_to_be_selected = 0.8
+        #implementation
+        report_object = self.__j1.get_a_list_of_tickets_whose_progress_has_exceeded_the_threshold_towards_completion(start_date, end_date, project_name,
+                                                                             target_versions,
+                                                                             alert_threshold_after_which_the_job_needs_to_be_selected)
+        print('tickets found:', report_object['data'])
+
+    def test_finding_overruning_processes(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 6, 1)
+        end_date = datetime.datetime(2020, 6, 5, 23, 59, 59)
+        #implementation
+
+    def test_separate_development_from_support_hours(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 6, 1)
+        end_date = datetime.datetime(2020, 6, 5, 23, 59, 59)
+        # implementation
+
+
+
+
 
 #todo filters: https://supermetrics.com/blog/google-data-studio-advanced-tips
 
