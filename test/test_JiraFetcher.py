@@ -203,7 +203,8 @@ class Test_JIRAFetcher(unittest.TestCase):
         report_object = self.__j1.get_a_list_of_tickets_whose_progress_has_exceeded_the_threshold_towards_completion(start_date, end_date, project_name,
                                                                              target_versions,
                                                                              alert_threshold_after_which_the_job_needs_to_be_selected)
-        print('tickets found:', report_object['data'])
+
+        self.__j1.create_data_as_csv_for_overrun_tickets(report_object)
 
     def test_finding_overruning_processes(self):
         project_name = 'OWA'
