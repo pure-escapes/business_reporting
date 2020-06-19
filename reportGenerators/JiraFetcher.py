@@ -53,7 +53,8 @@ class JIRA_Fetcher:
         if version is not None:
             self.__version = version
 
-        self.__where = {'board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT',
+        self.__where = {'in_progress_on_the_board':'Blocked, "Code Review", "In Development", "Preparing Tests", QA, UAT',
+                        'board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT',
                         'backlog': 'Backlog',
                         'full_board': 'Blocked, "Code Review", "In Development", "Preparing Tests", QA, "Selected for Development", UAT, Done',
                         }
@@ -611,13 +612,13 @@ class JIRA_Fetcher:
 
         start_date_as_str = start_date.strftime("%Y/%m/%d")
         end_date_as_str = end_date.strftime("%Y/%m/%d")
-        output = {"timestamp_this_was_created":self.get_now_as_a_string(),
+        output = {"timestamp_this_was_created": self.get_now_as_a_string(),
                   "versions_considered": ", ".join(map(lambda x: '"'+str(x)+'"', versions)),
-                  "where":self.__where['board'],
-                  "start_date":start_date.strftime("%Y/%m/%d"),
-                  "end_date":end_date.strftime("%Y/%m/%d"),
-                  "types_of_tickets_considered":self.__types_of_tickets['stories_and_bugs'],
-                  "data":[]
+                  "where": self.__where['in_progress_on_the_board'],
+                  "start_date": start_date.strftime("%Y/%m/%d"),
+                  "end_date": end_date.strftime("%Y/%m/%d"),
+                  "types_of_tickets_considered": self.__types_of_tickets['stories_and_bugs'],
+                  "data": []
                   }
         template_of_JQL_command = 'issuetype in ({})  AND project = "{}" AND fixVersion  in ({}) AND status in ({}) AND updated >= "{}" AND updated <= "{}" '
         JQL_command = template_of_JQL_command.format(output["types_of_tickets_considered"],
@@ -634,31 +635,44 @@ class JIRA_Fetcher:
 
 
 
-
+        temp_data = []
         for issue in selected_tickets:
 
-
+            booked_over_estimated = issue.fields.workratio
 
             currently_booked_time = issue.fields.aggregatetimespent
             original_estimation = issue.fields.aggregatetimeestimate
 
+            if issue.fields.aggregatetimeoriginalestimate == 0:
+                print('warning! ', str(issue.key),' has zero estimation!')
+
             if (currently_booked_time is not None) and (original_estimation is not None):
 
-                check = currently_booked_time - threshold * original_estimation
+                # check = currently_booked_time - threshold * original_estimation
 
-                if (check > 0.0) and (original_estimation > 0.0):
+                if (booked_over_estimated > 100*threshold) and (original_estimation > 0.0):
 
                     entry = {}
 
                     entry["ticket_name"] = str(issue.key)
-                    entry['ratio_booked_over_estimated'] = currently_booked_time/original_estimation
+                    entry['booked_over_estimated'] = booked_over_estimated
+                    entry['booked_time_in_hours'] = currently_booked_time / 3600
+                    entry['originally_estimated_time_in_hours'] = original_estimation / 3600
                     entry["version"] = str(issue.fields.fixVersions[0])
 
                     entry['issue_type'] = str(issue.fields.issuetype).lower()
                     entry['item_type'] = str(issue.fields.customfield_10037)
 
 
-                    output['data'].append(entry)
+
+                    temp_data.append(entry)
+
+        sorted_data = sorted(temp_data, key=lambda x: x['booked_over_estimated'], reverse=True)
+        output['data'] = sorted_data
+
+        # output['data'] = temp_data
+
+        # sorted(orders.items(), key=lambda x: x[1], reverse=True)
 
         return output
 

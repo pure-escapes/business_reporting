@@ -198,7 +198,7 @@ class Test_JIRAFetcher(unittest.TestCase):
         target_versions = ["1.0.0", "1.1.0", "1.2.0"]
         start_date = datetime.datetime(2020, 6, 15)
         end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
-        alert_threshold_after_which_the_job_needs_to_be_selected = 0.8
+        alert_threshold_after_which_the_job_needs_to_be_selected = 0.1
         #implementation
         report_object = self.__j1.get_a_list_of_tickets_whose_progress_has_exceeded_the_threshold_towards_completion(start_date, end_date, project_name,
                                                                              target_versions,
