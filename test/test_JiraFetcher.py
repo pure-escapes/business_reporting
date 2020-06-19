@@ -116,14 +116,15 @@ class Test_JIRAFetcher(unittest.TestCase):
 
     def test_create_time_tracking(self):
         project_name = 'OWA'
-        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
-        start_date = datetime.datetime(2020, 6, 8)
-        end_date = datetime.datetime(2020, 6, 12, 23, 59, 59)
+        # target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        target_versions = [ "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 6, 15)
+        end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
 
         for version in target_versions:
-            report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name,
+            report_object = self.__j1.get_breakdown_of_tickets_with_hours_booked2(start_date, end_date, project_name,
                                                                                  version)
-            self.__j1.create_data_as_csv_for_logged_work_for(report_object, True)
+            self.__j1.create_data_as_csv_for_logged_work_for2(report_object, True)
 
     def test_that_the_work_of_a_period_is_account_for_a_specific_period(self):
         '''
@@ -198,11 +199,25 @@ class Test_JIRAFetcher(unittest.TestCase):
         target_versions = ["1.0.0", "1.1.0", "1.2.0"]
         start_date = datetime.datetime(2020, 6, 15)
         end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
-        alert_threshold_after_which_the_job_needs_to_be_selected = 0.1
-        #implementation
+        alert_threshold_after_which_the_job_needs_to_be_selected = 0.8
+
         report_object = self.__j1.get_a_list_of_tickets_whose_progress_has_exceeded_the_threshold_towards_completion(start_date, end_date, project_name,
                                                                              target_versions,
                                                                              alert_threshold_after_which_the_job_needs_to_be_selected)
+
+        self.__j1.create_data_as_csv_for_overrun_tickets(report_object)
+
+    def test_progress_for_a_week(self):
+        project_name = 'OWA'
+        target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+        start_date = datetime.datetime(2020, 6, 15)
+        end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
+        alert_threshold_after_which_the_job_needs_to_be_selected = 0.01
+
+        report_object = self.__j1.get_a_list_of_tickets_whose_progress_has_exceeded_the_threshold_towards_completion(
+            start_date, end_date, project_name,
+            target_versions,
+            alert_threshold_after_which_the_job_needs_to_be_selected)
 
         self.__j1.create_data_as_csv_for_overrun_tickets(report_object)
 

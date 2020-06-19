@@ -473,6 +473,91 @@ class JIRA_Fetcher:
 
         return output
 
+    def get_breakdown_of_tickets_with_hours_booked2(self,start_date: datetime, end_date: datetime, project_name: str, version: str):
+        '''
+        some approach:
+
+        A.Use GET /rest/api/3/worklog/updated to get the IDs of worklogs in the time period. The timestamp refers to the time the worklog has been created/updated, not the date to which the entry refers. To make sure I have everything, I just go later in the past. The call is paginated, and the response is small, so listing too much is not a big problem. You just need to remove the worklogs you don't want afterwards
+        B.Use POST /rest/api/3/worklog/list to get the actual worklogs. The payload is the list of IDs to you got in the first step. This is limited to 1000 entries, but you can call it multiple times
+        C.Bonus - If you need the issues for the retrieved worklogs, use POST /rest/api/3/search. You need to use POST, because the query will be very long and does not fit in the URL. You can build the query from the issue ids in the worklogs retrieved in step 2 (`id in (12345, 456789, ...)`
+
+
+
+        :param: start (inclusive)
+        :return: end  (inclusive)
+        '''
+
+        start_date_as_str = start_date.strftime("%Y/%m/%d")
+        end_date_as_str = end_date.strftime("%Y/%m/%d")
+        output = {"timestamp_this_was_created":self.get_now_as_a_string(),
+                  "version":str(version),
+                  "where":self.__where['full_board'],
+                  "start_date":start_date.strftime("%Y/%m/%d"),
+                  "end_date":end_date.strftime("%Y/%m/%d"),
+                  "members":{}, # <---------- to delete
+                  "tickets_considered":self.__types_of_tickets['all_possible'],
+                  "worklog_items":[]
+                  }
+        template_of_JQL_command = 'issuetype in {}  AND project = "{}" AND fixVersion = "{}"  AND status in ({}) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'
+        JQL_command = template_of_JQL_command.format(output["tickets_considered"],
+                                                     project_name,
+                                                     version,
+                                                     output['where'],
+                                                     start_date_as_str,
+                                                     end_date_as_str)
+
+
+
+
+        selected_tickets = self.__jira_handler.search_issues(JQL_command, startAt=0, maxResults=200)
+
+
+        all_members_of_the_team = self.get_list_of_all_members_that_participated_in_the_work_of_selected_tickets(selected_tickets, start_date, end_date)
+
+
+        for member in all_members_of_the_team:
+            output["members"].update({member: {}})
+
+        all_items = []
+        for issue in selected_tickets:
+            ticket_name = str(issue.key)
+
+            break_down_of_a_single_ticket = self.get_time_tracking_of_a_ticket_per_user_for_a_specific_period2(ticket_name, start_date, end_date)
+
+            for part_of_a_ticket in break_down_of_a_single_ticket:
+                work_log_item = {}
+
+                work_log_item["when"] = part_of_a_ticket["when"]
+                work_log_item["booked_hours"] = part_of_a_ticket["booked_hours"]
+                work_log_item["contribution_type"] = part_of_a_ticket["contribution_type"]
+                work_log_item["member_of_team"] = part_of_a_ticket["member_of_team"]
+
+
+
+
+
+
+                # for member in break_down_of_ticket_per_member['members'].keys():
+                #     hours_booked_on_this_ticket = 0
+                #     if ticket_name not in output["members"][member].keys():
+                #         output["members"][member].update({ticket_name: {'total_hours_booked': hours_booked_on_this_ticket}})
+                #
+                #
+                # for member,booked_time_in_seconds in break_down_of_ticket_per_member['members'].items():
+                #     hours_booked_on_this_ticket = booked_time_in_seconds/3600
+                #     temp_data = {ticket_name: {'total_hours_booked': hours_booked_on_this_ticket}}
+                #
+                #     output["members"][member][ticket_name]['total_hours_booked'] += hours_booked_on_this_ticket
+
+                work_log_item["version"] = version
+                work_log_item["ticket"] = ticket_name
+
+                all_items.append(work_log_item)
+
+        output["worklog_items"] = all_items
+
+        return output
+
     def calculate_the_cycle_time_of_an_issue_from_its_activity(self, issue_name: str):
         '''
         go through the history of a ticket, find the time it was entered in column 'In Development' from the column 'Selected for Development'
@@ -653,11 +738,11 @@ class JIRA_Fetcher:
                 if (booked_over_estimated > 100*threshold) and (original_estimation > 0.0):
 
                     entry = {}
-
+                    entry['week_commencing'] = start_date_as_str
                     entry["ticket_name"] = str(issue.key)
                     entry['booked_over_estimated'] = booked_over_estimated
-                    entry['booked_time_in_hours'] = currently_booked_time / 3600
-                    entry['originally_estimated_time_in_hours'] = original_estimation / 3600
+                    entry['booked_hours'] = currently_booked_time / 3600
+                    entry['originally_estimated_hours'] = original_estimation / 3600
                     entry["version"] = str(issue.fields.fixVersions[0])
 
                     entry['issue_type'] = str(issue.fields.issuetype).lower()
@@ -678,7 +763,7 @@ class JIRA_Fetcher:
 
     def create_data_as_csv_for_overrun_tickets(self, input: dict):
 
-        output_filename = 'Tickets_expected_to_overrun_from_'+input["start_date"].replace('/','_')+"_to_"+input["end_date"].replace('/','_')+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
+        output_filename = 'Progress_of_tickets_from_'+input["start_date"].replace('/','_')+"_to_"+input["end_date"].replace('/','_')+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
 
         with open(output_filename,'w') as csv_file:
             headers = list(input["data"][0].keys())
@@ -786,7 +871,105 @@ class JIRA_Fetcher:
 
         print("")
 
+    def create_data_as_csv_for_logged_work_for2(self, input: dict, show_totals=False):
+        '''
+        this is expected to be used within Google data studio or other analytics platform that utilises data
+        :param input:
+        :param show_totals:
+        :return:
+        '''
+        print('For version', input["version"],'between', input["start_date"], 'and', input["end_date"],'the following members of the team have logged their time against tickets ',input["tickets_considered"],':')
+        print('by considering columns:', input["where"],
+              ', generated at', input["timestamp_this_was_created"], ":")
+
+        output_filename = 'time_tracking_for_version_'+str(input["version"])+"_from_"+str(input["start_date"]).replace('/','_')+"_to_"+str(input["end_date"]).replace('/','_')+"_created_at_"+str(input["timestamp_this_was_created"])+".csv"
+
+        team_total_hours = 0
+        with open(output_filename,'w') as csv_file:
+            fieldnames = ['week_commencing', 'member', 'total_hours_booked', 'version','development_hours','support_hours']
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            aggreegation_per_member = {}
+            for item in input['worklog_items']:
+                ticket = item['ticket']
+                member_of_team = item["member_of_team"]
+                if member_of_team not in aggreegation_per_member.keys():
+                    aggreegation_per_member[member_of_team] = {"development_hours": 0,
+                                                               "support_hours": 0,
+                                                               "tickets":{}}
+
+                if ticket not in aggreegation_per_member[member_of_team]["tickets"].keys():
+                    aggreegation_per_member[member_of_team]["tickets"][ticket] = 0
+
+                aggreegation_per_member[member_of_team]["tickets"][ticket] += item['booked_hours']
+
+                if item['contribution_type'] == "development":
+                    aggreegation_per_member[member_of_team]["development_hours"] += item['booked_hours']
+                else:
+                    aggreegation_per_member[member_of_team]["support_hours"] += item['booked_hours']
+
+            for member_of_team in aggreegation_per_member.keys():
+                print(member_of_team)
+                for ticket, hours in aggreegation_per_member[member_of_team]["tickets"].items():
+                    print("\t", ticket, ":", hours, "hours")
+                total_hours_per_member = aggreegation_per_member[member_of_team]["development_hours"] + aggreegation_per_member[member_of_team]["support_hours"]
+                team_total_hours += total_hours_per_member
+                print("\t total:",total_hours_per_member,'hours')
+                writer.writerow({'week_commencing': input["start_date"],
+                                 'member': member_of_team,
+                                 'total_hours_booked': total_hours_per_member,
+                                 'version': str(input["version"]),
+                                 'development_hours': aggreegation_per_member[member_of_team]["development_hours"],
+                                 'support_hours': aggreegation_per_member[member_of_team]["support_hours"]
+
+                                 })
+
+        filename_for_intermediate_table = 'intermediate_table_for_time_tracking_for_version_'+str(input["version"])+"_from_"+str(input["start_date"]).replace('/','_')+"_to_"+str(input["end_date"]).replace('/','_')+"_created_at_"+str(input["timestamp_this_was_created"])+".csv"
+        with open(filename_for_intermediate_table,'w') as csv_file:
+            fieldnames = input['worklog_items'][0].keys()
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for item in input['worklog_items']:
+                writer.writerow(item)
+
+        print("Team total:", team_total_hours/8,"days (8 hours = 1 day) = ", team_total_hours, "hours")
+        print("")
+
+
+
+
+    def get_author_of_ticket(self, ticket: str):
+
+        base_url = "https://pureescapes.atlassian.net"
+        url = base_url + "/rest/api/3/issue/" + ticket
+
+
+        auth = HTTPBasicAuth(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER"))
+
+        headers = {
+            "Accept": "application/json"
+        }
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=headers,
+            auth=auth
+        )
+
+
+
+        structured_output = json.loads(response.text)
+
+        # author_name = structured_output.fields.assignee.displayName #["attachment"]["displayName"]
+        author_name = structured_output['fields']['assignee']['displayName']  # ["attachment"]["displayName"]
+
+        return author_name
+
     def get_time_tracking_of_a_ticket_per_user_for_a_specific_period(self, ticket: str, start_date: datetime, end_date: datetime):
+        #todo deprecate
         '''
         on jira's data model, each author object corresponds to a time booking, and the the field "started"
         represents when the time was spent.
@@ -798,7 +981,9 @@ class JIRA_Fetcher:
         time_tracking = {"timestamp_this_was_created":self.get_now_as_a_string(),
                          'comments':'the values represent time booked in seconds',
                             "ticket": ticket,
-                             "members": {}
+                            "members": {},
+                            "support_hours_per_member":{},
+                            "development_hours_by_the_author": 0
                          }
 
         base_url = "https://pureescapes.atlassian.net"
@@ -822,6 +1007,10 @@ class JIRA_Fetcher:
 
         structured_output = json.loads(response.text)
 
+        author_of_ticket = self.get_author_of_ticket(ticket)
+        time_tracking['author'] = author_of_ticket
+
+
         for worklog_item in structured_output['worklogs']:
             member_of_team = worklog_item['author']['displayName']
             booked_time_in_seconds = worklog_item['timeSpentSeconds']
@@ -834,8 +1023,103 @@ class JIRA_Fetcher:
                 else:
                     time_tracking['members'][member_of_team] += booked_time_in_seconds
 
+                if member_of_team == author_of_ticket:
+                    time_tracking["development_hours_by_the_author"] += booked_time_in_seconds/3600
+                else:
+                    if member_of_team not in time_tracking["support_hours_per_member"].keys():
+                        time_tracking["support_hours_per_member"][member_of_team] = booked_time_in_seconds/3600
+                    else:
+                        time_tracking["support_hours_per_member"][member_of_team] += booked_time_in_seconds/3600
+
+
+
 
             # print (member_of_team, booked_time_in_seconds)
+
+
+
+
+        return time_tracking
+
+    def get_time_tracking_of_a_ticket_per_user_for_a_specific_period2(self, ticket: str, start_date: datetime, end_date: datetime):
+        #todo deprecate
+        '''
+        on jira's data model, each author object corresponds to a time booking, and the the field "started"
+        represents when the time was spent.
+        Eg. The expectation is that a user should book time for a specific week and on jira dialog the box 'Date Started' should point to the appropriate date of the week
+
+        :param ticket:
+        :return:
+        '''
+        time_tracking = []
+        # time_tracking = {"timestamp_this_was_created":self.get_now_as_a_string(),
+        #                  'comments':'the values represent time booked in seconds',
+        #                     "ticket": ticket,
+        #                     "members": {},
+        #                     "support_hours_per_member":{},
+        #                     "development_hours_by_the_author": 0
+        #                  }
+
+        base_url = "https://pureescapes.atlassian.net"
+        url = base_url+"/rest/api/2/issue/"+ticket+"/worklog"
+
+        auth = HTTPBasicAuth(os.getenv("PE_JIRA_USERNAME"), os.getenv("PE_JIRA_BI_LISTENER"))
+
+        headers = {
+            "Accept": "application/json"
+        }
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=headers,
+            auth=auth
+        )
+
+        # challenge.datetime_start = self.utc.localize(challenge.datetime_start)
+        # challenge.datetime_end = self.utc.localize(challenge.datetime_end)
+
+        structured_output = json.loads(response.text)
+
+        author_of_ticket = self.get_author_of_ticket(ticket)
+
+
+
+        for worklog_item in structured_output['worklogs']:
+            item = {}
+            member_of_team = worklog_item['author']['displayName']
+            booked_time_in_seconds = worklog_item['timeSpentSeconds']
+
+            # time_the_work_started_as_str=worklog_item['started']
+            date_of_worklog_item = dateutil.parser.parse(worklog_item['started'])
+            if self.utc.localize(start_date) <= date_of_worklog_item <= self.utc.localize(end_date):
+                # if member_of_team not in time_tracking['members'].keys():
+                #     time_tracking['members'][member_of_team] = booked_time_in_seconds
+                # else:
+                #     time_tracking['members'][member_of_team] += booked_time_in_seconds
+                #
+                # if member_of_team == author_of_ticket:
+                #     time_tracking["development_hours_by_the_author"] += booked_time_in_seconds/3600
+                # else:
+                #     if member_of_team not in time_tracking["support_hours_per_member"].keys():
+                #         time_tracking["support_hours_per_member"][member_of_team] = booked_time_in_seconds/3600
+                #     else:
+                #         time_tracking["support_hours_per_member"][member_of_team] += booked_time_in_seconds/3600
+
+                item["when"] = date_of_worklog_item
+                item["booked_hours"] = booked_time_in_seconds/3600
+
+                if author_of_ticket == member_of_team:
+                    item["contribution_type"] = "development"
+                else:
+                    item["contribution_type"] = "support"
+
+                item["member_of_team"] = member_of_team
+
+                time_tracking.append(item)
+
+
+
 
 
 
