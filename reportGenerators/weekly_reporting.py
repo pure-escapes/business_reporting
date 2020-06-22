@@ -17,9 +17,9 @@ def generate_all_reporting_data_for_specific_week(target_versions: list, start_d
     j1.create_data_as_csv_for_DONE_tickets(report_object, True)
 
     for version in target_versions:
-        report_object = j1.get_breakdown_of_tickets_with_hours_booked(start_date, end_date, project_name,
+        report_object = j1.get_breakdown_of_tickets_with_hours_booked2(start_date, end_date, project_name,
                                                                              version)
-        j1.create_data_as_csv_for_logged_work_for(report_object, True)
+        j1.create_data_as_csv_for_logged_work_for2(report_object, True)
 
     config = c4.get_basic_configuration_file()
     config["start_date_as_str"] = start_date.strftime("%Y/%m/%d")
@@ -52,10 +52,18 @@ def run_week_23():
 
 
 def run_week_24():
+    # last time of v1 for time tracking
     target_versions = ["1.0.0", "1.1.0", "1.2.0"]
     start_date = datetime.datetime(2020, 6, 8, 0, 0, 1)
     end_date = datetime.datetime(2020, 6, 14, 23, 59, 59)
     generate_all_reporting_data_for_specific_week(target_versions, start_date, end_date)
 
+def run_week_25():
+    #introduced v2 for time tracking
+    target_versions = ["1.1.0", "1.2.0"]
+    start_date = datetime.datetime(2020, 6, 15, 0, 0, 1)
+    end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
+    generate_all_reporting_data_for_specific_week(target_versions, start_date, end_date)
+
 if __name__ == "__main__":
-    run_week_24()
+    run_week_25()
