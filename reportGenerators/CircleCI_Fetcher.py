@@ -106,7 +106,7 @@ class CircleCI_Fetcher():
         return counter_of_successful_jobs, efficiency, counter_of_jobs
 
     def get_basic_configuration_file(self):
-        config = {
+        config_original = {
             "start_date_as_str": "3/4/2020",
             "end_date_as_str": "29/4/2020",
             "projects": {
@@ -174,6 +174,85 @@ class CircleCI_Fetcher():
                 "events-service": {
                     "circleCI_workflow_name": "deploy",
                     "name_of_job_that_deploys_to_production": "build_deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                }
+            }
+        }
+
+
+        config = {
+            "start_date_as_str": "3/4/2020",
+            "end_date_as_str": "29/4/2020",
+            "projects": {
+
+                "webapp-frontend": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-admin": {
+                    "circleCI_workflow_name":"build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-client-api": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-admin-api": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "webapp-backend": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "pdf-service": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
+                    "name_of_github_branch_related_to_production": "sandbox",
+                    "calculated": {
+                        "number_of_successful_deployments": 0,
+                        "efficiency": 0.0,
+                        "total_number_of_deployments": 0
+                    }
+                },
+                "events-service": {
+                    "circleCI_workflow_name": "build_and_deploy",
+                    "name_of_job_that_deploys_to_production": "deploy_sandbox",
                     "name_of_github_branch_related_to_production": "sandbox",
                     "calculated": {
                         "number_of_successful_deployments": 0,
