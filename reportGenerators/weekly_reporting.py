@@ -65,5 +65,11 @@ def run_week_25():
     end_date = datetime.datetime(2020, 6, 19, 23, 59, 59)
     generate_all_reporting_data_for_specific_week(target_versions, start_date, end_date)
 
+def run_week_26():
+    target_versions = ["1.0.0", "1.1.0", "1.2.0"]
+    start_date = datetime.datetime(2020, 6, 22, 0, 0, 1)
+    end_date = datetime.datetime(2020, 6, 26, 23, 59, 59)
+    generate_all_reporting_data_for_specific_week(target_versions, start_date, end_date)
+
 if __name__ == "__main__":
-    run_week_25()
+    run_week_26()

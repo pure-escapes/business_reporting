@@ -60,7 +60,8 @@ class JIRA_Fetcher:
                         }
 
         self.__types_of_tickets= { 'stories_and_bugs':'(Bug,Story)',
-                                   'all_possible':'(Bug,Story,Task, Sub-task)'
+                                   'all_possible':'(Bug,Story,Task, Sub-task)',
+                                   'all_possible_and_epic': '(Bug,Story,Task, Sub-task, Epic)'
 
         }
 
@@ -495,7 +496,7 @@ class JIRA_Fetcher:
                   "start_date":start_date.strftime("%Y/%m/%d"),
                   "end_date":end_date.strftime("%Y/%m/%d"),
                   "members":{}, # <---------- to delete
-                  "tickets_considered":self.__types_of_tickets['all_possible'],
+                  "tickets_considered":self.__types_of_tickets['all_possible_and_epic'],
                   "worklog_items":[]
                   }
         template_of_JQL_command = 'issuetype in {}  AND project = "{}" AND fixVersion = "{}"  AND status in ({}) AND worklogDate >= "{}"    AND worklogDate <= "{}"  order by lastViewed DESC'

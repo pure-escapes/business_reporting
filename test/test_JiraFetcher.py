@@ -244,7 +244,6 @@ class Test_JIRAFetcher(unittest.TestCase):
 # todo find any tickets without epics (in backlog & kanban board)
 # todo do quality analysis of the kanban board
 # todo calculate how to re-assign the work, so as to finish earlier, based on the availability of developers
-# todo estimate lead time (for a ticket, for  particular version)
+
 # todo estimate WIP (for a ticket to flow through the board)
 # todo check tickets in the backlog (if the important information is missing; epic, version, story points, original estimation, etc)
-# todo how many tickets finished in a week
