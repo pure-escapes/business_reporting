@@ -780,14 +780,18 @@ class JIRA_Fetcher:
         output_filename = 'Agile_velocity_snapshot_of_DONE_tickets_from_'+input["start_date"].replace('/','_')+"_to_"+input["end_date"].replace('/','_')+'_created_at_'+input["timestamp_this_was_created"]+'.csv'
 
         with open(output_filename,'w') as csv_file:
-            headers = list(input["data"][0].keys())
-            # headers = ['ticket_name', 'version', 'when_was_created', 'when_was_done', 'points']
-            writer = csv.DictWriter(csv_file, fieldnames=headers)
+            if len(input["data"]) == 0:
+                print('No tickets finished between', input["start_date"], 'and', input["end_date"], 'for versions', input['versions_considered'])
 
-            writer.writeheader()
+            else:
+                headers = list(input["data"][0].keys())
+                # headers = ['ticket_name', 'version', 'when_was_created', 'when_was_done', 'points']
+                writer = csv.DictWriter(csv_file, fieldnames=headers)
 
-            for data_item in input["data"]:
-                writer.writerow(data_item)
+                writer.writeheader()
+
+                for data_item in input["data"]:
+                    writer.writerow(data_item)
 
 
     def show_message_for_logged_work(self, input: dict, show_totals=False):
@@ -928,14 +932,17 @@ class JIRA_Fetcher:
 
         filename_for_intermediate_table = 'intermediate_table_for_time_tracking_for_version_'+str(input["version"])+"_from_"+str(input["start_date"]).replace('/','_')+"_to_"+str(input["end_date"]).replace('/','_')+"_created_at_"+str(input["timestamp_this_was_created"])+".csv"
         with open(filename_for_intermediate_table,'w') as csv_file:
-            fieldnames = input['worklog_items'][0].keys()
-            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-            writer.writeheader()
+            if len(input['worklog_items']) == 0:
+                print('Version',input['version'],'remained constant during this period')
+            else:
+                fieldnames = input['worklog_items'][0].keys()
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writeheader()
 
-            for item in input['worklog_items']:
-                writer.writerow(item)
+                for item in input['worklog_items']:
+                    writer.writerow(item)
 
-        print("Team total:", team_total_hours/8,"days (8 hours = 1 day) = ", team_total_hours, "hours")
+        print("Team total:", round(team_total_hours/8, 2),"days (8 hours = 1 day) = ", team_total_hours, "hours")
         print("")
 
 
@@ -965,6 +972,8 @@ class JIRA_Fetcher:
         structured_output = json.loads(response.text)
 
         # author_name = structured_output.fields.assignee.displayName #["attachment"]["displayName"]
+        #todo: sometimes a ticket might not have an assignee!!! (so, it's unassigned, and this breaks the scripts).
+        # which means that in the datamodel of jira `structured_output['fields']['assignee']['displayName'] is None`
         author_name = structured_output['fields']['assignee']['displayName']  # ["attachment"]["displayName"]
 
         return author_name
